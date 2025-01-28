@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    .container{
+        background:#F2F2F2;
+        padding:20px;
+        box-sizing: border-box;
+    }
+
+    .content{
+        background-color: #FFF;
+        padding:30px;
+        box-sizing: border-box;
+        max-width:900px;
+        margin-left:auto;
+        margin-right:auto;
+        font-family: "Outfit" ,sans-serif;
+    }
+
+    .text{
+        margin-top:20px;
+    }
+
+    .text p{
+        font-weight: 400;
+        font-size: 1rem;
+        line-height:1.5
+    }
+
+    .footer{
+        border-left:1px solid red;
+        padding:20px;
+        padding-left:40px;
+        box-sizing: border-box;
+        margin-top:50px;
+    }
+
+    @media(max-width:810px){
+        .btn{
+            margin-top:20px;
+            margin-left:0px !important;
+            font-weight:600 !important
+        }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="content">
+        <img src="{{siteUrl}}/medias/email-top.jpg" style="width:100%;" alt="top email" />
+        <div class="text">
+            <p>Votre compte Référent Direction Régionale vient d'être créé !</p>
+            <p>Voici vos identifiants, vous pourrez changer ce mot de passe dans votre espace personnel dès votre première connexion</p>
+            <p>Votre adresse e-mail : {{email}}</p>
+            <p>Voici votre nouveau mot de passe :</p>
+            <span style="background:#F9F9F9;display:inline-block;padding:15px;border-radius:10px;font-size:1rem;">{{password}}</span>
+            <p>Attention à le garder secrètement de votre côté.</p>
+            <p>Pour rappel, cet accès DR vous permet de gérer les rencontres dont vous êtes référent (gérer la liste des participants, leur envoyer des mails et gérer les réponses au questionnaire de satisfaction). A ce jour cela concerne</p>
+            <p>Région(s) : {{regions}}</p>
+            <p>Module(s) : {{modules}}</p>
+            <p>Voici le lien de la plateforme : <a href="{{siteUrl}}//connexion">Connexion</a>.</p>
+            <p>Pour vous connecter, cliquez sur l’onglet « Se connecter », rentrez les identifiants communiqués plus haut et cochez la case « Je suis administrateur ou DR »</p>
+            <p style="border-top: 1px solid #e0e0e0;padding-top: 20px;color: #a5a5a5;">Merci de ne pas répondre à ce mail. Pour toute question relative à la plateforme, vous pouvez nous contacter à l’adresse mail suivante : rencontres.ademe@i-care-consult.com</p>
+        </div>
+        <div class="footer">
+            <p style="font-size:1rem;margin:0px !important">
+                <span style="color:#274F98;display:block;">En savoir plus sur :</span>
+                <a style="text-decoration:none;color:#d13e2a;" href="{{siteUrl}}">{{siteUrl}}</a>
+            </p>
+        </div>
+    </div>
+  </div>
+</body>
+</html>

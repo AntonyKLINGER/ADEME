@@ -30,6 +30,10 @@ export default function Home() {
   trad["GUY"] = "Guyane"
   trad["REU"] = "La Reunion"
   trad["MAY"] = "Mayotte"
+  trad["POL"] = "Polynésie Française"
+  trad["SPM"] = "Saint-Pierre et Miquelon"
+  trad["OIN"] = "Océan Indien"
+  trad["NCA"] = "Nouvelle Calédonie"
 
   const getModules = async (nom) => {
     const fetcher = await fetch(`/api/modules/?nom=${nom}`)
@@ -74,7 +78,7 @@ export default function Home() {
       <div className="section border-top">
         <div className="boxed">
           <div className="flex gap50 aligncenter toColumn">
-            <div className="w50 noM">
+            <div className="w55 noM">
               <div className="map__image">
                 <img src="/medias/map/france.webp" className="france" />
                 <img src="/medias/map/FR-COR.webp" onClick={() => window.location.href = `/rencontres?region=Corse`} onMouseOver={() => setRegion('COR')} onMouseOut={() => setRegion('')} className={`map corse ${region == "COR" && styles.RegionLight}`} />
@@ -98,12 +102,14 @@ export default function Home() {
                 <img src="/medias/map/FR-GUA.png" onClick={() => window.location.href = `/rencontres?region=Guadeloupe`} onMouseOver={() => setRegion('GUA')} onMouseOut={() => setRegion('')} className={`${region == "GUA" && styles.RegionLight}`} />
                 <img src="/medias/map/FR-MART.png" onClick={() => window.location.href = `/rencontres?region=Martinique`} onMouseOver={() => setRegion('MART')} onMouseOut={() => setRegion('')} className={`${region == "MART" && styles.RegionLight}`} />
                 <img src="/medias/map/FR-GUY.png" onClick={() => window.location.href = `/rencontres?region=Guyane`} onMouseOver={() => setRegion('GUY')} onMouseOut={() => setRegion('')} className={`${region == "GUY" && styles.RegionLight}`} />
-                <img src="/medias/map/FR-REU.png" onClick={() => window.location.href = `/rencontres?region=La Reunion`} onMouseOver={() => setRegion('REU')} onMouseOut={() => setRegion('')} className={`${region == "REU" && styles.RegionLight}`} />
-                <img src="/medias/map/FR-MAY.png" onClick={() => window.location.href = `/rencontres?region=Mayotte`} onMouseOver={() => setRegion('MAY')} onMouseOut={() => setRegion('')} className={`${region == "MAY" && styles.RegionLight}`} />
+                <img src="/medias/map/nouvelle-caledonie.png" onClick={() => window.location.href = `/rencontres?region=Nouvelle Calédonie`} onMouseOver={() => setRegion('NCA')} onMouseOut={() => setRegion('')} className={`${region == "NCA" && styles.RegionLight}`} />
+                <img src="/medias/map/ocean-indien.png" onClick={() => window.location.href = `/rencontres?region=Océan Indien`} onMouseOver={() => setRegion('OIN')} onMouseOut={() => setRegion('')} className={`${region == "OIN" && styles.RegionLight}`} />
+                <img src="/medias/map/polynesie-francaise.png" onClick={() => window.location.href = `/rencontres?region=Polynésie Française`} onMouseOver={() => setRegion('POL')} onMouseOut={() => setRegion('')} className={`${region == "POL" && styles.RegionLight}`} />
+                <img src="/medias/map/st-pierre-miquelon.png" onClick={() => window.location.href = `/rencontres?region=Saint-Pierre et Miquelon`} onMouseOver={() => setRegion('SPM')} onMouseOut={() => setRegion('')} className={`${region == "SPM" && styles.RegionLight}`} />
               </div>
               <span className={styles.legend}>Carte des régions de France</span>
             </div>
-            <div className="w50 wm100">
+            <div className="w45 wm100">
               <h2>Découvrez les rencontres à venir dans votre région.</h2>
               <ul className={`${styles.Regions}`}>
                 <li><Link href={`/rencontres?region=Auvergne-Rhône-Alpes`} onMouseOver={() => setRegion('ARA')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>Auvergne-Rhône-Alpes</Link></li>
@@ -122,8 +128,10 @@ export default function Home() {
                 <li><Link href={`/rencontres?region=Guadeloupe`} onMouseOver={() => setRegion('GUA')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>Guadeloupe</Link></li>
                 <li><Link href={`/rencontres?region=Martinique`} onMouseOver={() => setRegion('MART')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>Martinique</Link></li>
                 <li><Link href={`/rencontres?region=Guyane`} onMouseOver={() => setRegion('GUY')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>Guyane</Link></li>
-                <li><Link href={`/rencontres?region=La Reunion`} onMouseOver={() => setRegion('REU')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>La Reunion</Link></li>
-                <li><Link href={`/rencontres?region=Mayotte`} onMouseOver={() => setRegion('MAY')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>Mayotte</Link></li>
+                <li><Link href={`/rencontres?region=Polynésie Française`} onMouseOver={() => setRegion('POL')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>Polynésie Française</Link></li>
+                <li><Link href={`/rencontres?region=Saint-Pierre et Miquelon`} onMouseOver={() => setRegion('SPM')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>Saint-Pierre et Miquelon</Link></li>
+                <li><Link href={`/rencontres?region=Océan Indien`} onMouseOver={() => setRegion('OIN')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>Océan Indien</Link></li>
+                <li><Link href={`/rencontres?region=Nouvelle Calédonie`} onMouseOver={() => setRegion('NCA')} onMouseOut={() => setRegion('')}><span className="material-icons">room</span>Nouvelle Calédonie</Link></li>
               </ul>
               <Link href="/rencontres" className="btn__normal btn__dark">Voir toutes les rencontres</Link>
             </div>

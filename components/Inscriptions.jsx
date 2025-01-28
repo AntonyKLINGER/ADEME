@@ -87,6 +87,10 @@ export default function Inscriptions(){
                                 <option>Île-de-France</option>
                                 <option>Pays de la Loire</option>
                                 <option>Provence-Alpes-Côte d'Azur</option>
+                                <option>Polynésie Française</option>
+                                <option>Saint-Pierre et Miquelon</option>
+                                <option>Océan Indien</option>
+                                <option>Nouvelle Calédonie</option>
                             </select>
                             <span className="material-icons">expand_more</span>
                         </div>

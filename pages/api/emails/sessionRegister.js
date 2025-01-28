@@ -5,6 +5,8 @@ import path from 'path';
 export default async function handler(req, res) {
   const { prenom, email, nomRencontre, dateRencontre, lieuRencontre, nbJours, mail_referent, firstDayStartTime } = req.body;
 
+  const startTime = firstDayStartTime.split('-')[0].trim();
+
   const transporter = nodemailer.createTransport({
     host: 'smtp-relay.brevo.com',
     port: 587,
@@ -39,7 +41,7 @@ export default async function handler(req, res) {
       nbJours: nbJours,
       dateRencontre: dateRencontre,
       mail_referent: mail_referent,
-      firstDayStartTime: firstDayStartTime
+      firstDayStartTime: startTime
     }
   };
 

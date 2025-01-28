@@ -85,12 +85,16 @@ export default function Rencontres({ base, region, pilier, thematique }){
     const [switcher, setSwitcher] = useState(false)
 
     function formatDate(dateString) {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
+        const base = dateString.split('T');
+        const [year, month, day] = base[0].split('-')
         return `${day}/${month}/${year}`;
-    }
+    }    
+
+    useEffect(() => {
+        if(region != ''){
+            setSwitcher(true)
+        }
+    }, [region])
 
     const getModules = async () => {
         const { pilier, nom, region, departement, thematique, dateDebut } = filtres
@@ -252,17 +256,50 @@ export default function Rencontres({ base, region, pilier, thematique }){
                                 )}
                                 {modules.length > 0 ? (
                                 <div className="flex wrap gap15">
-                                    {modules.map((module, index) => (
-                                        <div key={index} className="w32 wm100">
-                                            <ModuleBox 
-                                                title={module.nom}
-                                                id={module.id}
-                                                link={`/rencontres/${module.slug}`}
-                                                theme={module.thematique}
-                                                length={module.sessions}
-                                            />
-                                        </div>
-                                    ))}
+                                    {!switcher ? 
+                                        modules.map((module, index) => {
+                                            
+                                            const publishedUpcomingSessions = module.sessions.filter(session => {
+                                                const isPublished = session.status === "publish";
+                                                const isUpcoming = new Date(session.dateDebut) > new Date();
+                                                return isPublished && isUpcoming;
+                                            });
+                        
+                                            return (
+                                                <div key={index} className="w32 wm100">
+                                                    <ModuleBox 
+                                                        title={module.nom}
+                                                        id={module.id}
+                                                        link={`/rencontres/${module.slug}`}
+                                                        theme={module.thematique}
+                                                        length={publishedUpcomingSessions}
+                                                    />
+                                                </div>
+                                            );
+                                            
+                                        }) : modules.map((module, index) => {
+                                            const publishedUpcomingSessions = module.sessions.filter(session => {
+                                                const isPublished = session.status === "publish";
+                                                const isUpcoming = new Date(session.dateDebut) > new Date();
+                                                return isPublished && isUpcoming;
+                                            });
+                                            
+                                            if (publishedUpcomingSessions.length > 0) {
+                                                return (
+                                                    <div key={index} className="w32 wm100">
+                                                        <ModuleBox 
+                                                            title={module.nom}
+                                                            id={module.id}
+                                                            link={`/rencontres/${module.slug}`}
+                                                            theme={module.thematique}
+                                                            length={publishedUpcomingSessions}
+                                                        />
+                                                    </div>
+                                                );
+                                            }
+                                            return null;                                            
+                                        })
+                                    }
                                 </div>
                                 ) : (
                                     <div className="mTop20">
@@ -300,7 +337,7 @@ export default function Rencontres({ base, region, pilier, thematique }){
                                                 <option>Energie, eau et assainissement</option>
                                                 <option>Mobilité et qualité de l'air</option>
                                                 <option>Transition bas carbone</option>
-                                                <option>Prévention et gestion des déchêts</option>
+                                                <option>Prévention et gestion des déchets</option>
                                                 <option>Consommation responsable</option>
                                                 <option>Autres piliers de l'économie circulaire</option>
                                                 <option>Gouvernance et pilotage</option>
@@ -358,24 +395,26 @@ export default function Rencontres({ base, region, pilier, thematique }){
                                 <div className="mTop40">
                                     <span className={styles.Label}>Rechercher par région</span>
                                     <ul className={styles.Regions}>
-                                        <li className={filtres.region == 'Auvergne-Rhône-Alpes' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Auvergne-Rhône-Alpes' } })}><span className="material-icons">room</span>Auvergne-Rhône-Alpes</li>
-                                        <li className={filtres.region == 'Bourgogne-Franche-Comté' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Bourgogne-Franche-Comté' } })}><span className="material-icons">room</span>Bourgogne-Franche-Comté</li>
-                                        <li className={filtres.region == 'Bretagne' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Bretagne' } })}><span className="material-icons">room</span>Bretagne</li>
-                                        <li className={filtres.region == 'Centre-Val de Loire' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Centre-Val de Loire' } })}><span className="material-icons">room</span>Centre-Val de Loire</li>
-                                        <li className={filtres.region == 'Corse' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Corse' } })}><span className="material-icons">room</span>Corse</li>
-                                        <li className={filtres.region == 'Normandie' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Normandie' } })}><span className="material-icons">room</span>Normandie</li>
-                                        <li className={filtres.region == 'Nouvelle-Aquitaine' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Nouvelle-Aquitaine' } })}><span className="material-icons">room</span>Nouvelle-Aquitaine</li>
-                                        <li className={filtres.region == 'Occitanie' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Occitanie' } })}><span className="material-icons">room</span>Occitanie</li>
-                                        <li className={filtres.region == 'Grand-Est' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Grand-Est' } })}><span className="material-icons">room</span>Grand-Est</li>
-                                        <li className={filtres.region == 'Hauts-de-France' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Hauts-de-France' } })}><span className="material-icons">room</span>Hauts-de-France</li>
-                                        <li className={filtres.region == 'Île-de-France' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Île-de-France' } })}><span className="material-icons">room</span>Île-de-France</li>
-                                        <li className={filtres.region == 'Pays de la Loire' ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Pays de la Loire' } })}><span className="material-icons">room</span>Pays de la Loire</li>
-                                        <li className={filtres.region == "Provence-Alpes-Côte d'Azur" ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Provence-Alpes-Côte d'Azur" } })}><span className="material-icons">room</span>Provence-Alpes-Côte d'Azur</li>
-                                        <li className={filtres.region == "Guadeloupe" ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Guadeloupe" } })}><span className="material-icons">room</span>Guadeloupe</li>
-                                        <li className={filtres.region == "Martinique" ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Martinique" } })}><span className="material-icons">room</span>Martinique</li>
-                                        <li className={filtres.region == "Guyane" ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Guyane" } })}><span className="material-icons">room</span>Guyane</li>
-                                        <li className={filtres.region == "La Reunion" ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "La Reunion" } })}><span className="material-icons">room</span>La Reunion</li>
-                                        <li className={filtres.region == "Mayotte" ? styles.RegionActive : undefined} onClick={(event) => setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Mayotte" } })}><span className="material-icons">room</span>Mayotte</li>
+                                        <li className={filtres.region == 'Auvergne-Rhône-Alpes' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Auvergne-Rhône-Alpes' } });setSwitcher(true)}}><span className="material-icons">room</span>Auvergne-Rhône-Alpes</li>
+                                        <li className={filtres.region == 'Bourgogne-Franche-Comté' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Bourgogne-Franche-Comté' } });setSwitcher(true)}}><span className="material-icons">room</span>Bourgogne-Franche-Comté</li>
+                                        <li className={filtres.region == 'Bretagne' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Bretagne' } });setSwitcher(true)}}><span className="material-icons">room</span>Bretagne</li>
+                                        <li className={filtres.region == 'Centre-Val de Loire' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Centre-Val de Loire' } });setSwitcher(true)}}><span className="material-icons">room</span>Centre-Val de Loire</li>
+                                        <li className={filtres.region == 'Corse' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Corse' } });setSwitcher(true)}}><span className="material-icons">room</span>Corse</li>
+                                        <li className={filtres.region == 'Normandie' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Normandie' } });setSwitcher(true)}}><span className="material-icons">room</span>Normandie</li>
+                                        <li className={filtres.region == 'Nouvelle-Aquitaine' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Nouvelle-Aquitaine' } });setSwitcher(true)}}><span className="material-icons">room</span>Nouvelle-Aquitaine</li>
+                                        <li className={filtres.region == 'Occitanie' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Occitanie' } });setSwitcher(true)}}><span className="material-icons">room</span>Occitanie</li>
+                                        <li className={filtres.region == 'Grand-Est' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Grand-Est' } });setSwitcher(true)}}><span className="material-icons">room</span>Grand-Est</li>
+                                        <li className={filtres.region == 'Hauts-de-France' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Hauts-de-France' } });setSwitcher(true)}}><span className="material-icons">room</span>Hauts-de-France</li>
+                                        <li className={filtres.region == 'Île-de-France' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Île-de-France' } });setSwitcher(true)}}><span className="material-icons">room</span>Île-de-France</li>
+                                        <li className={filtres.region == 'Pays de la Loire' ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: 'Pays de la Loire' } });setSwitcher(true)}}><span className="material-icons">room</span>Pays de la Loire</li>
+                                        <li className={filtres.region == "Provence-Alpes-Côte d'Azur" ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Provence-Alpes-Côte d'Azur" } });setSwitcher(true)}}><span className="material-icons">room</span>Provence-Alpes-Côte d'Azur</li>
+                                        <li className={filtres.region == "Guadeloupe" ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Guadeloupe" } });setSwitcher(true)}}><span className="material-icons">room</span>Guadeloupe</li>
+                                        <li className={filtres.region == "Martinique" ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Martinique" } });setSwitcher(true)}}><span className="material-icons">room</span>Martinique</li>
+                                        <li className={filtres.region == "Guyane" ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Guyane" } });setSwitcher(true)}}><span className="material-icons">room</span>Guyane</li>
+                                        <li className={filtres.region == "Polynésie Française" ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Polynésie Française" } });setSwitcher(true)}}><span className="material-icons">room</span>Polynésie Française</li>
+                                        <li className={filtres.region == "Saint-Pierre et Miquelon" ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Saint-Pierre et Miquelon" } });setSwitcher(true)}}><span className="material-icons">room</span>Saint-Pierre et Miquelon</li>
+                                        <li className={filtres.region == "Océan Indien" ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Océan Indien" } });setSwitcher(true)}}><span className="material-icons">room</span>Océan Indien</li>
+                                        <li className={filtres.region == "Nouvelle Calédonie" ? styles.RegionActive : undefined} onClick={(event) => {setFiltres(prev => { return { ...prev, nom: '', departement: '', region: "Nouvelle Calédonie" } });setSwitcher(true)}}><span className="material-icons">room</span>Nouvelle Calédonie</li>
                                     </ul>
                                 </div>
                                 <div className="mTop40">
@@ -484,6 +523,10 @@ export default function Rencontres({ base, region, pilier, thematique }){
                                             <option>973 - Guyane</option>
                                             <option>974 - La Reunion</option>
                                             <option>976 - Mayotte</option>
+                                            <option>Polynésie Française</option>
+                                            <option>Saint-Pierre et Miquelon</option>
+                                            <option>Océan Indien</option>
+                                            <option>Nouvelle Calédonie</option>
                                         </select>
                                         <span className="material-icons">expand_more</span>
                                     </div>

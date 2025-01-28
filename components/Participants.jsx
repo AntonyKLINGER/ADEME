@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Participant from '@/components/Participant'
 import * as XLSX from 'xlsx';
+import * as JSZip from 'jszip'; // Importer JSZip
+import { saveAs } from 'file-saver'; // Importer file-saver pour gérer le téléchargement
 import Alert from '@/components/Alert'
 import { Notif } from '@/components/Notif'
 import styles from '@/styles/Participants.module.css'
@@ -19,11 +21,33 @@ export default function Participants({ session, setOpen }){
     const [editContent, setEditContent] = useState('');
     const [subject, setSubject] = useState('')
     const [isMail, setIsMail] = useState(false)
+    const [openAdd, setOpenAdd] = useState(false)
+    const [openList, setOpenList] = useState(false)
+    const [searchUsers, setSearchUsers] = useState([])
+    const [userAdded, setUserAdded] = useState(null)
+    const [loading, setLoading] = useState(false);
 
-    const exportToExcel = (jsonArray, sheetName) => {
+    const flattenJson = (jsonArray) => {
+        return jsonArray.map(item => {
+          const flattenedItem = { ...item };
+          
+          if (item.user) {
+            flattenedItem.userOrganisation = item.user.organisation || '';
+            flattenedItem.userFonction = item.user.fonction || '';
+            delete flattenedItem.user;
+          }
+
+      
+          return flattenedItem;
+        });
+      };
+      
+      const exportToExcel = (jsonArray, sheetName) => {
+
+        const flattenedData = flattenJson(jsonArray);
+      
         const workbook = XLSX.utils.book_new();
-        
-        const worksheet = XLSX.utils.json_to_sheet(jsonArray);
+        const worksheet = XLSX.utils.json_to_sheet(flattenedData);
         
         XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
         
@@ -36,9 +60,10 @@ export default function Participants({ session, setOpen }){
         
         document.body.appendChild(link);
         link.click();
-
+        
         document.body.removeChild(link);
       };
+      
 
     function formatDate(dateString) {
         const date = new Date(dateString);
@@ -47,6 +72,40 @@ export default function Participants({ session, setOpen }){
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     }
+
+      // Fonction pour télécharger tous les badges
+    const downloadAllBadges = async () => {
+        setLoading(true);
+        const zip = new JSZip();
+
+        for (const participant of users) {
+        const datas = {
+            nom: participant.nom,
+            prenom: participant.prenom,
+            program: participant.session.metasSession.programmeSession,
+            organisation: participant.structure || '',
+        };
+
+        const response = await fetch('/api/generate-badge', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datas),
+        });
+
+        const blob = await response.blob();
+        zip.file(`badge_${participant.nom}_${participant.prenom}.pdf`, blob);
+        }
+
+        zip.generateAsync({ type: 'blob' }).then((content) => {
+        saveAs(content, 'badges_participants.zip');
+        setLoading(false);
+        }).catch(error => {
+        console.error('Erreur lors de la génération du fichier ZIP:', error);
+        setLoading(false);
+        });
+    };
 
     const getParticipants = async () => {
         const fetcher = await fetch(`/api/registrations/bySession?sessionId=${session.id}`)
@@ -109,6 +168,75 @@ export default function Participants({ session, setOpen }){
         }
     }
 
+    const chercherInscrit = async (nom) => {
+        if(nom.length >= 3){
+            const getUsers = await fetch(`/api/users/findUser?search=${nom}`)
+            const get = await getUsers.json()
+            setSearchUsers(get)
+            setOpenList(true)
+        }
+        else{
+            setOpenList(false)
+        }
+    }
+
+    const addUserFromList = async (user) => {
+        setUserAdded(user)
+        setOpenList(false)
+        setSearchUsers([])
+    }
+
+    const ajouterInscrit = async () => {
+        let inscriptionData = {
+            civilite: '-',
+            mail: userAdded.mail,
+            nom: userAdded.nom,
+            prenom: userAdded.prenom,
+            structure: userAdded.organisation,
+            fonction: userAdded.fonction,
+            typeFonction: '-',
+            ville: '-',
+            region: userAdded.region,
+            telephone: '-',
+            transport: '-',
+            repas: false,
+            repas2: false,
+            besoins: null,
+            regime: 'Omnivore',
+            programmeTETE: null,
+            participationUlterieure: null,
+            days: false
+        }
+
+        const registering = await fetch('/api/registrations/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                inscriptionData: inscriptionData,
+                userId: userAdded.id,
+                sessionId: session.id,
+                type: 'user'
+            })
+        })
+
+        const json = await registering.json()
+
+        setUserAdded(null)
+        setOpenList(false)
+        setSearchUsers([])
+
+        setAlert(null)
+        setNotif({
+            text: 'Le nouveau participant a été ajouté !',
+            icon: 'done'
+        })
+
+        getParticipants()
+    }
+
+
     useEffect(() => {
         getParticipants()
     }, [actions])
@@ -128,8 +256,17 @@ export default function Participants({ session, setOpen }){
                         </select>
                         <span className="material-icons">expand_more</span>
                     </div>
-                    <button className="btn__normal btn__dark" onClick={() => exportToExcel(users, `Participants Session ${session.region}`)}>Exporter la liste des participants</button>
+                    <button className="btn__normal btn__dark" onClick={() => exportToExcel(users, `Export liste des participants`)}>Exporter la liste des participants</button>
                     <button className="btn__normal btn__light" onClick={() => setIsMail(prev => !prev)}>{isMail ? "Fermer" : "Envoyer un mail"}</button>
+                    </div>
+                    <div class="mBot30">
+                        <div className="flex aligncenter gap10">
+                            <button className="btn__normal btn__light" onClick={() => setOpenAdd(prev => !prev)}>Ajouter un participant</button>
+                            <button className="btn__normal btn__dark" onClick={downloadAllBadges} disabled={loading}>
+                                {loading ? 'Génération des badges, veuillez patienter...' : 'Télécharger tous les badges'}      
+                            </button>
+                        </div>
+                        {loading && <p class="mBot30">Le téléchargement peut prendre du temps si le nombre de participants est élevé, veuillez patienter...</p>}
                     </div>
                     {isMail && (
                         <div className={styles.sendEmail}>
@@ -140,6 +277,31 @@ export default function Participants({ session, setOpen }){
                             </div>
                             <button onClick={preMail} className="btn__normal btn__dark mTop20">Envoyer l'e-mail</button>
                         </div>                        
+                    )}
+                    {openAdd && (
+                        <div className={styles.sendEmail}>
+                             <h2>Ajouter un participant</h2>
+                            {userAdded == null ? (
+                                <>
+                                    <input type="text" onChange={(event) => chercherInscrit(event.target.value)} name="rechercheInscrit" className="input-text" placeholder="Chercher un inscrit..." />
+                                    {openList && (
+                                        <>
+                                            <div className={styles.ListSearch}>
+                                                {searchUsers.map((user, i) => {
+                                                    return <button onClick={() => addUserFromList(user)} key={i}>{user.nom} {user.prenom} {user.mail}</button>
+                                                })}
+                                            </div>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="flex aligncenter">
+                                    <span>{userAdded.nom} {userAdded.prenom} - {userAdded.mail}</span>
+                                    <button onClick={ajouterInscrit} className={styles.toAdd}>Ajouter</button>
+                                    <button onClick={() => addUserFromList(null)} className={styles.toRem}><span className="material-icons">close</span></button>
+                                </div>
+                            )}
+                        </div>  
                     )}
 
                     {users.filter(user => selectedFonction === '' || user.fonction === selectedFonction).map((user, index) => {

@@ -145,6 +145,10 @@ export default function Modules({setPage, page, user}){
                                 <option>Guyane</option>
                                 <option>La Reunion</option>
                                 <option>Mayotte</option>
+                                <option>Polynésie Française</option>
+                                <option>Saint-Pierre et Miquelon</option>
+                                <option>Océan Indien</option>
+                                <option>Nouvelle Calédonie</option>
                             </select>
                             <span className="material-icons">expand_more</span>
                         </div>
@@ -166,34 +170,77 @@ export default function Modules({setPage, page, user}){
                         </div>
                     </div>
                     <div className="mTop30">
-                        {sessions.length > 0 ? (
-                            sessions.map((session, index) => {
-                                if(session.status == 'publish' || user.type == 'Administrateur' || user.id == 10){
-                                    return (
-                                        <div key={index} className="w100 mBot10">
-                                            <SessionsBack 
-                                                date={session.dateDebut}
-                                                code={session.module.code}
-                                                region={session.region}
-                                                dept={session.departement}
-                                                title={session.moduleName}
-                                                id={session.id}
-                                                moduleId={session.moduleId}
-                                                setOpen={setOpen}
-                                                setAlert={setAlert}
-                                                action={() => deleteSession(session.id)}
-                                                status={session.status}
-                                                setActions={setActions}
-                                                session={session}
-                                                user={user}
-                                            />
-                                        </div>                                     
-                                    )
-                                }
-                            })
+                        {user.type == "Administrateur" ? (
+                            <>
+                                {sessions.length > 0 ? (
+                                    sessions.map((session, index) => {
+                                        if(session.status == 'publish' || user.type == 'Administrateur' || user.id == 10){
+                                            return (
+                                                <div key={index} className="w100 mBot10">
+                                                    <SessionsBack 
+                                                        date={session.dateDebut}
+                                                        code={session.module.code}
+                                                        region={session.region}
+                                                        dept={session.departement}
+                                                        title={session.moduleName}
+                                                        id={session.id}
+                                                        moduleId={session.moduleId}
+                                                        setOpen={setOpen}
+                                                        setAlert={setAlert}
+                                                        action={() => deleteSession(session.id)}
+                                                        status={session.status}
+                                                        setActions={setActions}
+                                                        session={session}
+                                                        user={user}
+                                                    />
+                                                </div>                                     
+                                            )
+                                        }
+                                    })
+                                ) : (
+                                    <>
+                                        <span>Il n'y a aucun module pour le moment.</span>
+                                    </>
+                                )}                           
+                            </>
                         ) : (
                             <>
-                                <span>Il n'y a aucun module pour le moment.</span>
+                                {sessions.filter(session => 
+                                    user.modules.includes(session.module.code) && 
+                                    user.regions.includes(session.region)
+                                ).length > 0 ? (
+                                    sessions.filter(session => 
+                                        user.modules.includes(session.module.code) && 
+                                        user.regions.includes(session.region)
+                                    ).map((session, index) => {
+                                        if(session.status == 'publish' || user.type == 'Administrateur' || user.id == 10){
+                                            return (
+                                                <div key={index} className="w100 mBot10">
+                                                    <SessionsBack 
+                                                        date={session.dateDebut}
+                                                        code={session.module.code}
+                                                        region={session.region}
+                                                        dept={session.departement}
+                                                        title={session.moduleName}
+                                                        id={session.id}
+                                                        moduleId={session.moduleId}
+                                                        setOpen={setOpen}
+                                                        setAlert={setAlert}
+                                                        action={() => deleteSession(session.id)}
+                                                        status={session.status}
+                                                        setActions={setActions}
+                                                        session={session}
+                                                        user={user}
+                                                    />
+                                                </div>                                     
+                                            )
+                                        }
+                                    })
+                                ) : (
+                                    <>
+                                        <span>Il n'y a aucun module pour le moment.</span>
+                                    </>
+                                )}
                             </>
                         )}
                     </div>

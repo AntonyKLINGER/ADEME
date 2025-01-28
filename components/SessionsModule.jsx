@@ -69,34 +69,71 @@ export default function SessionsModule({ id, setOpen, open, nom, user }){
                         <button onClick={() => {setNav(1);setPassed('old')}} className={nav == 1 ? styles.active : undefined}>Sessions passées</button>
                     </div>
                     <div className="mTop30">
-                        {sessions.length > 0 ? (
-                            sessions.map((session, index) => {
-                                if(session.status == "publish" || user.type == 'Administrateur' || user.id == 10){
-                                    return (
-                                        <div key={index} className="w100 mBot10">
-                                            <SessionsBack 
-                                                date={session.dateDebut}
-                                                region={session.region}
-                                                dept={session.departement}
-                                                title={nom}
-                                                id={session.id}
-                                                moduleId={id}
-                                                setOpen={setOpen}
-                                                setAlert={setAlert}
-                                                action={() => deleteSession(session.id)}
-                                                status={session.status}
-                                                setActions={setActions}
-                                                session={session}
-                                                isModule="yes"
-                                                user={user}
-                                            />
-                                        </div>                                     
-                                    )
-                                }
-                            })
+                        {user.type == "Administrateur" ? (
+                            <>
+                                {sessions.length > 0 ? (
+                                    sessions.map((session, index) => {
+                                        if(session.status == "publish" || user.type == 'Administrateur' || user.id == 10){
+                                            return (
+                                                <div key={index} className="w100 mBot10">
+                                                    <SessionsBack 
+                                                        date={session.dateDebut}
+                                                        region={session.region}
+                                                        dept={session.departement}
+                                                        title={nom}
+                                                        id={session.id}
+                                                        moduleId={id}
+                                                        setOpen={setOpen}
+                                                        setAlert={setAlert}
+                                                        action={() => deleteSession(session.id)}
+                                                        status={session.status}
+                                                        setActions={setActions}
+                                                        session={session}
+                                                        isModule="yes"
+                                                        user={user}
+                                                    />
+                                                </div>                                     
+                                            )
+                                        }
+                                    })
+                                ) : (
+                                    <>
+                                        <span>Il n'y a aucune session pour le moment.</span>
+                                    </>
+                                )}                            
+                            </>
                         ) : (
                             <>
-                                <span>Il n'y a aucune session pour le moment.</span>
+                                {sessions.filter(session => user.regions.includes(session.region)).length > 0 ? (
+                                    sessions.filter(session => user.regions.includes(session.region)).map((session, index) => {
+                                        if(session.status == "publish" || user.type == 'Administrateur' || user.id == 10){
+                                            return (
+                                                <div key={index} className="w100 mBot10">
+                                                    <SessionsBack 
+                                                        date={session.dateDebut}
+                                                        region={session.region}
+                                                        dept={session.departement}
+                                                        title={nom}
+                                                        id={session.id}
+                                                        moduleId={id}
+                                                        setOpen={setOpen}
+                                                        setAlert={setAlert}
+                                                        action={() => deleteSession(session.id)}
+                                                        status={session.status}
+                                                        setActions={setActions}
+                                                        session={session}
+                                                        isModule="yes"
+                                                        user={user}
+                                                    />
+                                                </div>                                     
+                                            )
+                                        }
+                                    })
+                                ) : (
+                                    <>
+                                        <span>Il n'y a aucune session pour le moment.</span>
+                                    </>
+                                )}                            
                             </>
                         )}
                     </div>

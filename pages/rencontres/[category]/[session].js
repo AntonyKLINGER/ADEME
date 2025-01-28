@@ -50,12 +50,10 @@ export async function getServerSideProps(context) {
 export default function Session({ data, user }){
 
     function formatDate(dateString) {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
+        const base = dateString.split('T');
+        const [year, month, day] = base[0].split('-')
         return `${day}/${month}/${year}`;
-    }
+    }    
 
     const [alert, setAlert] = useState(null)
     const [notif, setNotif] = useState(null)
@@ -84,6 +82,8 @@ export default function Session({ data, user }){
         besoins: '',
         hebergement: '',
         regime: 'Omnivore',
+        programmeTETE: '',
+        participationUlterieure: false,
         days: true,
         repas: false,
         repas2: false,
@@ -117,9 +117,18 @@ export default function Session({ data, user }){
             transport: inscription.transport,
             repas: inscription.repas,
             repas2: inscription.repas2,
+            besoins: inscription.besoins,
             regime: inscription.regime,
+            programmeTETE: inscription.programmeTETE,
+            participationUlterieure: inscription.participationUlterieure,
             days: inscription.days
         }
+
+
+        const userType = (user.type == "Administrateur" || user.type == "DR") ? "special" : "user"
+
+        console.log("TYPE => ", userType)
+
 
         const registering = await fetch('/api/registrations/add', {
             method: 'POST',
@@ -129,7 +138,8 @@ export default function Session({ data, user }){
             body: JSON.stringify({
                 inscriptionData: inscriptionData,
                 userId: inscription.userId,
-                sessionId: data.id
+                sessionId: data.id,
+                type: userType
             })
         })
 
@@ -158,6 +168,8 @@ export default function Session({ data, user }){
             besoins: '',
             hebergement: '',
             regime: 'Omnivore',
+            programmeTETE: '',
+            participationUlterieure: false,
             repas: false,
             repas2: false,
             days: true,
@@ -168,8 +180,8 @@ export default function Session({ data, user }){
     }
 
     const register = async () => {
-        const { civilite, nom, prenom, mail, structure, fonction, type_fonction, ville, region, telephone, transport, besoins, hebergement, repas, rgpd, rgpd2 } = inscription
-        if(civilite && nom && prenom && mail && structure && fonction && type_fonction && region && transport){
+        const { civilite, nom, prenom, mail, structure, fonction, type_fonction, ville, region, telephone, transport, besoins, hebergement, programmeTETE, repas, rgpd, rgpd2 } = inscription
+        if(civilite && nom && prenom && mail && structure && fonction && type_fonction && region && programmeTETE && transport){
             if(rgpd && rgpd2){
                 if(mail.includes('@') && mail.includes('.')){
                     setAlert({
@@ -202,30 +214,56 @@ export default function Session({ data, user }){
     }
 
     const getAvailable = async () => {
-        const fetcher = await fetch(`/api/registrations/bySession?sessionId=${data.id}`)
-        const json = await fetcher.json()
-        const max = parseInt(data.metasSession.nombrePlaces) || 0
-        if(json.length >= max){
-            setDispo(false)
+        try {
+            const fetcher = await fetch(`/api/registrations/bySession?sessionId=${data.id}`);
+            const json = await fetcher.json();
+    
+            const max = parseInt(data.metasSession.nombrePlaces) || 0;
+    
+            // Filtrer uniquement les inscriptions valides (non supprimées)
+            const validRegistrations = json.filter(registration => !registration.deleted);
+    
+            // Vérifier si le nombre de places disponibles est atteint
+            if (validRegistrations.length >= max) {
+                setDispo(false);
+            } else {
+                setDispo(true);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération des inscriptions :', error);
         }
-    }
+    };
+    
 
     useEffect(() => {
         const getUserInfo = async () => {
-            const fetcher = await fetch(`/api/users/${user.id}`)
-            const json = await fetcher.json()
-            let userDetail = await json[0]
-            setInscription(prev => {
-                return {
-                    ...prev,
-                    userId: userDetail.id,
-                    nom: userDetail.nom,
-                    prenom: userDetail.prenom,
-                    mail: userDetail.mail,
-                    telephone: userDetail.telephone,
-                    fonction:userDetail.fonction
-                }
-            })
+            if(user != null && (user.type == "Administrateur" || user.type == "DR")){
+                const fetcher = await fetch(`/api/accounts/${user.id}`)
+                const json = await fetcher.json()
+                let userDetail = await json[0]
+                setInscription(prev => {
+                    return {
+                        ...prev,
+                        userId: userDetail.id,
+                        mail: userDetail.email,
+                    }
+                })
+            } else {
+                const fetcher = await fetch(`/api/users/${user.id}`)
+                const json = await fetcher.json()
+                let userDetail = await json[0]
+                setInscription(prev => {
+                    return {
+                        ...prev,
+                        userId: userDetail.id,
+                        nom: userDetail.nom,
+                        prenom: userDetail.prenom,
+                        mail: userDetail.mail,
+                        telephone: userDetail.telephone,
+                        fonction:userDetail.fonction
+                    }
+                })
+            }
         }
 
         if(user != null){
@@ -252,15 +290,28 @@ export default function Session({ data, user }){
     }
 
     useEffect(() => {
-        const checker = async () => {
-            const fetcher = await fetch(`/api/registrations/byUserSession?userId=${user.id}&sessionId=${data.id}`)
-            const json = await fetcher.json()
-            if(json.length > 0 && json[0].deleted == false){
-                setCheck(true)
+        if(user != null && (user.type == "Administrateur" || user.type == "DR")){
+            const checker = async () => {
+                const fetcher = await fetch(`/api/registrations/byUserSession?userId=${user.id}&sessionId=${data.id}&specialAccount=true`)
+                const json = await fetcher.json()
+                if(json.length > 0 && json[0].deleted == false){
+                    setCheck(true)
+                }
             }
-        }
-        if(user != null){
-            checker()
+            if(user != null){
+                checker()
+            }
+        } else {
+            const checker = async () => {
+                const fetcher = await fetch(`/api/registrations/byUserSession?userId=${user.id}&sessionId=${data.id}`)
+                const json = await fetcher.json()
+                if(json.length > 0 && json[0].deleted == false){
+                    setCheck(true)
+                }
+            }
+            if(user != null){
+                checker()
+            }
         }
     }, [data, alert, user])
 
@@ -289,8 +340,8 @@ export default function Session({ data, user }){
       }, [data]);
 
       const nextStep = () => {
-        const { civilite, nom, prenom, mail, structure, fonction, type_fonction, ville, region, telephone } = inscription
-        if(civilite && nom && prenom && mail && structure && fonction && type_fonction && region){
+        const { civilite, nom, prenom, mail, structure, fonction, type_fonction, ville, region, programmeTETE, telephone } = inscription
+        if(civilite && nom && prenom && mail && structure && fonction && type_fonction && region && programmeTETE){
             setReg(1)
         }
         else{
@@ -352,6 +403,7 @@ export default function Session({ data, user }){
 
     const groupedData = groupByDay(data.metasSession.programmeSession);
 
+
     return (
         <>
             <Head>
@@ -381,6 +433,9 @@ export default function Session({ data, user }){
                                         </div>
                                     )}
                                 </div>
+                                {data.module.visuel != null && (
+                                    <img src={data.module.visuel} alt="visuel" className={styles.visu} />
+                                )}       
                             </div>
                             <div className="w30 wm100">
                                 <div className={styles.Box}>
@@ -390,8 +445,17 @@ export default function Session({ data, user }){
                                             <img src="/medias/icon-date.webp" alt="icon" className="w70" />
                                         </div>
                                         <div className="w80">
-                                            <span className={styles.dLabel}>Date et horaires :</span>
+                                            <span className={styles.dLabel}>Date :</span>
                                             <span className={styles.dValue}>{formatDate(data.metasSession.dateHoraires)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex alignstart gap10 mTop30">
+                                        <div className="w10">
+                                            <img src="/medias/icon-date.webp" alt="icon" className="w70" />
+                                        </div>
+                                        <div className="w80">
+                                            <span className={styles.dLabel}>Durée du module :</span>
+                                            <span className={styles.dValue}>{data.metasSession.nombreJours} jour{data.metasSession.nombreJours > 1 ? 's' : ''}</span>
                                         </div>
                                     </div>
                                     <div className="flex alignstart gap10 mTop20">
@@ -427,7 +491,7 @@ export default function Session({ data, user }){
                                         </div>
                                         <div className="w80">
                                             <span className={styles.dLabel}>Nombre de places restantes :</span>
-                                            <span className={styles.dValue}>{data.metasSession.nombrePlaces-nbInscrits}</span>
+                                            <span className={styles.dValue}>{!dispo ? 0 : data.metasSession.nombrePlaces-nbInscrits}</span>
                                         </div>
                                     </div>
                                     {data.metasSession.infosTransport != '' && (
@@ -464,6 +528,9 @@ export default function Session({ data, user }){
                             <div className="flex wrap gap25 mTop40">
                                 {Object.keys(groupedData).map(day => (
                                     <div key={day}>
+                                        {data.module.metasModule.duree == "2 jours" && (
+                                            <span className={styles.dayTitle}>Jour {day}</span>
+                                        )}
                                         <div className="flex wrap gap25">
                                             {groupedData[day].map((programme, index) => (
                                                 <div key={index} className="w23 wm100">
@@ -542,7 +609,7 @@ export default function Session({ data, user }){
                                                 </div>
                                             ) : (
                                                 <>
-                                                    {!dispo && (
+                                                    {(!dispo || data.metasSession.nombrePlaces-nbInscrits < 1) && (
                                                         <div className={styles.Already}>
                                                             <span className="material-icons">error_outline</span>
                                                             <div><strong>Il ne reste plus de place pour cette session.</strong> Les inscriptions sont fermées.</div>
@@ -572,20 +639,22 @@ export default function Session({ data, user }){
                                                 </div>
                                                 <div className="flex gap15 mTop20">
                                                     <input type="mail" name="mail" onChange={handleChange} value={inscription.mail} className="input-mail w50" placeholder="Adresse email professionnelle*" />
-                                                    <div className="select w50">
-                                                        <select name="structure" onChange={handleChange} value={inscription.structure} className="input-select">
-                                                            <option value=''>Structure / Organisme</option>
-                                                            <option>Collectivité territoriale</option>
-                                                            <option>Autre</option>
-                                                        </select>
-                                                        <span className="material-icons">expand_more</span>
+                                                    <input type="text" name="structure" onChange={handleChange} value={inscription.structure} className="input-mail w50" placeholder="Nom de votre structure*" />
+                                                </div>
+                                                <div className="mTop20">
+                                                    <div className="flex aligncenter gap10">
+                                                        <p className="w60">Votre organisation est-elle engagée dans le programme Territoire Engagé Transition Ecologique (TETE) de l’ADEME ?</p>
+                                                        <div className="select w40">
+                                                            <select name="programmeTETE" onChange={handleChange} value={inscription.programmeTETE} className="input-select">
+                                                                <option value="">-</option>
+                                                                <option>Oui</option>
+                                                                <option>Non</option>
+                                                                <option>Non concerné (je ne représente pas une collecitivté)</option>
+                                                            </select>
+                                                            <span className="material-icons">expand_more</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                {other && (
-                                                    <div className="mTop20">
-                                                        <input type="text" onChange={(event) => setOtherSave(event.target.value)} value={otherSave} className="input-text" placeholder="Indiquez le type de structure" />
-                                                    </div>
-                                                )}
                                                 <div className="flex gap15 mTop20">
                                                     <input name="fonction" onChange={handleChange} value={inscription.fonction} type="text" className="input-text w50" placeholder="Poste" />
                                                     <div className="select w50">
@@ -623,6 +692,10 @@ export default function Session({ data, user }){
                                                             <option>Guyane</option>
                                                             <option>La Reunion</option>
                                                             <option>Mayotte</option>
+                                                            <option>Polynésie Française</option>
+                                                            <option>Saint-Pierre et Miquelon</option>
+                                                            <option>Océan Indien</option>
+                                                            <option>Nouvelle Calédonie</option>
                                                         </select>
                                                         <span className="material-icons">expand_more</span>
                                                     </div>
@@ -690,14 +763,21 @@ export default function Session({ data, user }){
                                                     </>
                                                 )}
                                                 <span className={styles.Title}>Besoins spécifiques complémentaires</span>                           
-                                                <textarea className="textarea mBot20 mTop20" placeholder="Précisez-nous vos besoins (accès PMR, handicaps, allergies, …)"></textarea>
-                                                <div className="flex gap50 mBot30">
+                                                <textarea value={inscription.besoins} name="besoins" onChange={handleChange} className="textarea mBot20 mTop20" placeholder="Précisez-nous vos besoins (accès PMR, handicaps, allergies, …)"></textarea>
+                                                <div className="flex gap50 mBot10">
                                                     <div className={`w50 ${data.metasSession.optionjour == true ? undefined : 'disnone'}`}>
                                                         <span className={styles.Title}>Participerez vous les deux jours ?</span>
                                                         <div className="flex aligncenter gap10 mTop10">
                                                             <input name="days" checked={inscription.days} onChange={handleChange} value="true" type="radio" /> Oui
                                                             <input name="days" onChange={handleChange} value="false" type="radio" /> Non
                                                         </div>
+                                                    </div>
+                                                </div>
+                                                <div className="mBot30">
+                                                    <span className={styles.Title}>Avez-vous déjà participé à un événement organisé par l'ADEME ?</span>
+                                                    <div className="flex aligncenter gap10 mTop10">
+                                                        <input name="participationUlterieure" onChange={handleChange} value="true" type="radio" /> Oui
+                                                        <input name="participationUlterieure" onChange={handleChange} value="false" type="radio" /> Non
                                                     </div>
                                                 </div>
                                                 <div className="mBot10">
@@ -725,7 +805,7 @@ export default function Session({ data, user }){
                                 )}
                                 {data.metasSession.mail_referent != undefined && data.metasSession.mail_referent != null && (
                                     <>
-                                        <p><strong>Référent(e) DR Grand Est</strong></p>
+                                        <p><strong>Référent(e) DR {data.region}</strong></p>
                                         <p>Une question concernant cette Rencontre ? Contactez le référent sur l’adresse mail suivante :<br />{data.metasSession.mail_referent}</p>
                                     </>
                                 )}                               

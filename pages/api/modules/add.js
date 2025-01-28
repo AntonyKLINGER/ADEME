@@ -74,7 +74,7 @@ export default async function handle(req, res) {
         let slug = moduleData.nom
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[.,]/g, "")
+        .replace(/[.,?]/g, "")
         .replace(/\s+/g, '-')
         .toLowerCase()
 

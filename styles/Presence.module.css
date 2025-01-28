@@ -1,0 +1,148 @@
+.all{
+    width: 100%;
+    min-height: 100vh;
+    background-color: var(--primaryBack);
+    padding-top: 100px;
+}
+
+.pres{
+    max-width: 1000px;
+    margin-inline:auto;
+    padding:40px;
+    border-radius:15px;
+    background-color: #FFF;
+}
+
+.pres h1{
+    font-weight: 600;
+}
+
+.session{
+    padding: 20px;
+    border-radius: 10px;
+    background: var(--primaryBack);
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.date{
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.region{
+    color: #fff;
+    background: var(--orange);
+    font-weight: 500;
+    font-size: .9rem;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.module{
+    font-size: 1.15rem;
+    color: var(--primary);
+    font-weight: 500;
+    display: block;
+    margin-top: 10px;
+}
+
+.nom{
+    font-size: 1.05rem;
+    color: var(--primary);
+    font-weight: 400;
+    display: block;
+}
+
+.session button{
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 5px;
+    padding: 4px 15px;
+    display: inline-block;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.user{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    border:1.5px solid var(--primaryThird);
+    padding:15px;
+    border-radius: 10px;
+    font-weight: 500;
+    justify-content: space-between;
+    margin-bottom:5px;
+}
+
+.nom{
+    font-weight: 500;
+    display: block;
+    margin-right: 5px;
+}
+
+.back{
+    border:0px;
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    background-color:var(--primaryBack);
+    color:var(--primary);
+    padding: 8px 20px 9px;
+    border-radius: 10px;
+    cursor:pointer;
+}
+
+.pres input[type=text]{
+    width: 100%;
+    border-radius: 10px;
+    height: 40px;
+    border:2px solid rgba(0,0,0,.1);
+    margin-bottom: 20px;
+    text-indent: 10px;
+}
+
+.pres input[type=text]:focus{
+    outline: none;
+}
+
+@media(max-width:810px){
+    .all{
+        padding-top:20px;
+    }
+
+    .pres{
+        max-width: 95%;
+    }
+
+    .pres h1{
+        font-size: 1.25rem;
+    }
+
+    .pres{
+        padding: 25px;
+    }
+
+    .user{
+        padding:10px;
+    }
+
+    .back{
+        font-size: 0.9rem;
+    }
+
+    .nom{
+        font-size: 0.9rem;
+    }
+
+    .module{
+        margin-bottom: 5px;
+    }
+
+    .region{
+        margin-top: 10px;
+    }
+}

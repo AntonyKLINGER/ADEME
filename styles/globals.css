@@ -85,6 +85,10 @@ p{
   cursor:pointer;
 }
 
+.align-end{
+  align-items: end;
+}
+
 .media{
   object-fit: contain;
 }
@@ -124,7 +128,7 @@ p{
 
 .btn__dark{
   color:#FFF;
-  background: var(--primary);
+  background: var(--primary) !important;
   transition:.2s ease;
 }
 
@@ -266,8 +270,9 @@ p{
 }
 
 .map__image{
-  width:100%;
+  width:91%;
   position: relative;
+  margin-left: auto;
 }
 
 .map__image .france{
@@ -417,7 +422,7 @@ p{
   display: flex;
   justify-content: center;
   flex-direction: column;
-  transform:translateY(-350px);
+  transform:scale(0.9) translateY(-100%);
   position: absolute;
 }
 

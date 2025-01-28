@@ -27,6 +27,57 @@
     border-radius: 5px;
 }
 
+.ListSearch{
+    max-width: 500px;
+    margin-top:20px;
+}
+
+.ListSearch button{
+    width: 100%;
+    display: block;
+    text-align: left;
+    padding:10px;
+    box-sizing: border-box;
+    border:1px solid rgba(0,0,0,.1);
+    margin:5px 0;
+    cursor:pointer;
+}
+
+.ListSearch button:hover{
+    background-color: var(--primaryBack);
+}
+
+.toAdd{
+    border:0px;
+    background-color: var(--primary);
+    color:#FFF;
+    padding:7px 15px;
+    font-weight: 500;
+    box-sizing: border-box;
+    border-radius: 35px;
+    margin-left: 10px;
+    cursor:pointer;
+}
+
+.toRem{
+    border:0px;
+    cursor:pointer;
+}
+
+.toRem span{
+    border:0px;
+    background-color: var(--primaryBack);
+    color:var(--primary);
+    font-size: .9rem !important;
+    width:35px;
+    height: 35px;
+    border-radius: 50%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+}
+
 .Title{
     font-size: 1.15rem;
     color: var(--primary);

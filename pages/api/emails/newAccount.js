@@ -5,7 +5,10 @@ const path = require('path');
 
 export default async function handler(req, res) {
 
-  const { email, password, type } = req.body
+  const { email, password, type, regions, modules } = req.body
+
+  const formattedRegions = regions.join(', ');
+  const formattedModules = modules.join(', ');
 
   const transporter = nodemailer.createTransport({
     host: 'smtp-relay.brevo.com',
@@ -32,11 +35,13 @@ export default async function handler(req, res) {
     from: '"ADEME" <contact@territoiresentransitions.fr>',
     to: email,
     subject: "Votre nouveau compte sur les Rencontres Territoire Engagé Transition écologique !",
-    template: 'newaccount',
+    template: type == 'DR' ? 'newaccountdr' : 'newaccount',
     context: {
         password: password,
         type: type,
         email: email,
+        regions: formattedRegions,
+        modules: formattedModules,
         siteUrl: process.env.WEBSITE_URL,
     }
   };

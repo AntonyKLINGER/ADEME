@@ -9,7 +9,7 @@ export default async function handle(req, res) {
     }
 
     // Extraire les données reçues du corps de la requête
-    const { note, commentaire, userId, sessionId } = req.body;
+    const { note, commentaire, userId, sessionId, type } = req.body;
 
     // Valider les données reçues
     if (!note || !commentaire || !userId || !sessionId) {
@@ -18,15 +18,29 @@ export default async function handle(req, res) {
     }
 
     try {
-        // Créer la nouvelle review
-        const newReview = await prisma.review.create({
-            data: {
-                note,
-                commentaire,
-                userId,
-                sessionId
-            }
-        });
+        let newReview;
+
+        if (type === 'special') {
+            // Créer une nouvelle review dans AccountReview si le type est "special"
+            newReview = await prisma.accountReview.create({
+                data: {
+                    note,
+                    commentaire,
+                    accountId: userId, // Utiliser accountId au lieu de userId
+                    sessionId
+                }
+            });
+        } else {
+            // Créer une nouvelle review dans Review pour tous les autres types
+            newReview = await prisma.review.create({
+                data: {
+                    note,
+                    commentaire,
+                    userId,
+                    sessionId
+                }
+            });
+        }
 
         // Retourner la review créée
         res.status(201).json(newReview);

@@ -11,14 +11,22 @@ export default function Rencontres({ user }){
     const [rencontres, setRencontres] = useState([])
     const [status, setStatus] = useState('upcoming')
     const [load, setLoad] = useState(false)
-    
+
 
     const getUserSessions = async () => {
-        setLoad(true)
-        const fetcher = await fetch(`/api/registrations/byUser/?userId=${user.id}&status=${status}`)
-        const json = await fetcher.json()
-        setRencontres(json)
-        setLoad(false)
+        if(user.type == "Administrateur" || user.type == "DR"){
+            setLoad(true)
+            const fetcher = await fetch(`/api/registrations/byUser/?userId=${user.id}&status=${status}&specialAccount=true`)
+            const json = await fetcher.json()
+            setRencontres(json)
+            setLoad(false)
+        } else {
+            setLoad(true)
+            const fetcher = await fetch(`/api/registrations/byUser/?userId=${user.id}&status=${status}`)
+            const json = await fetcher.json()
+            setRencontres(json)
+            setLoad(false)
+        }
     }
 
     useEffect(() => {
@@ -26,12 +34,10 @@ export default function Rencontres({ user }){
     }, [status, open])
 
     function formatDate(dateString) {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
+        const base = dateString.split('T');
+        const [year, month, day] = base[0].split('-')
         return `${day}/${month}/${year}`;
-    }
+    }   
 
     return (
         <div className={styles.Rencontres}>
@@ -54,7 +60,7 @@ export default function Rencontres({ user }){
                                 {rencontres.map((rencontre, index) => {
                                     if(rencontre.deleted == false || rencontre.deleted == undefined){
                                     return (
-                                        <div key={index} onClick={() => setOpen(rencontre.session.id)} className="w49 wm100">
+                                        <div key={index} onClick={() => setOpen({sessionId: rencontre.session.id, registrationId: rencontre.id})} className="w49 wm100">
                                             <SessionBox 
                                                 date={formatDate(rencontre.session.dateDebut)}
                                                 region={rencontre.session.region}
@@ -79,7 +85,7 @@ export default function Rencontres({ user }){
             </>
             ) : (
                 <div className="mTop20">
-                    <RencontreDetail id={open} setOpen={setOpen} user={user} userId={user.id}  />
+                    <RencontreDetail id={open.sessionId} setOpen={setOpen} user={user} userId={user.id} registrationId={open.registrationId}  />
                 </div>
             )}
         </div>

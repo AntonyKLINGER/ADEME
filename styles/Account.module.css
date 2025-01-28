@@ -140,6 +140,39 @@
     width: 50px;
 }
 
+.askTitle{
+    display: block;
+    margin:20px 0;
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+.asker{
+    margin:10px 0;
+}
+
+.asker label{
+    margin-left: 5px;
+}
+
+.textareaF{
+    width: 100%;
+    height:100px;
+    border:2px solid rgba(0,0,0,.1);
+    padding:15px;
+    font-family: "Outfit", sans-serif;
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+.textF{
+    width: 100%;
+    text-indent: 10px;
+    height: 40px;
+    border:2px solid rgba(0,0,0,.1);
+    font-weight: 300;
+}
+
 @media(max-width:810px){
     .Box{
         padding:30px;

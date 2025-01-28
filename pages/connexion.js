@@ -35,7 +35,7 @@ export default function Login(){
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ id: json.account.id, mail: json.account.mail, type: json.account.type }),
+                        body: JSON.stringify({ id: json.account.id, mail: json.account.mail, type: json.account.type, modules: json.account.modules, regions: json.account.regions }),
                     });
                 
                     const jwtJson = await jwtResponse.json();
@@ -62,8 +62,11 @@ export default function Login(){
                     });
                 
                     const jwtJson = await jwtResponse.json();
-                    if(jwtJson){
+                    if(jwtJson && json.user.id != 115){
                         router.push('/espace-personnel');                       
+                    }
+                    else{
+                        router.push('/presence');
                     }
                     
                 } else {

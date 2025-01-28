@@ -10,23 +10,16 @@ import styles from '@/styles/Admin.module.css'
 
 export async function getServerSideProps(context) {
     const { auth: token } = nextCookies(context);
-<<<<<<< HEAD
 
     const user = verifyToken(token);
-
-=======
-    console.log('Token:', token);
-    const user = verifyToken(token);
-    console.log('User:', user);
->>>>>>> de5f47b94e67cec2661e0d0e2e54406249eeb693
-
+  
     if (!user || (user.id != 10 && user.type != 'Administrateur' && user.type != 'DR')) {
-        return {
-            redirect: {
-                destination: '/connexion',
-                permanent: false,
-            },
-        };
+      return {
+        redirect: {
+          destination: '/connexion',
+          permanent: false,
+        },
+      };
     }
 
     return { props: { user } };
@@ -69,7 +62,7 @@ export default function Admin({ user }){
                                             <Modules user={userInfo} setPage={setPage} />
                                         )}
                                         {page == 1 && (
-                                            <Comptes />
+                                            <Comptes user={userInfo} />
                                         )}
                                         {page == 2 && (
                                             <AllSessions user={userInfo} page={page} setPage={setPage} />

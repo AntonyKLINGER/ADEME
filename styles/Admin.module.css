@@ -314,3 +314,17 @@
     padding:10px 15px;
     cursor:pointer;
 }
+
+.accountSingle{
+    position: relative;
+}
+
+/* .accountSettings{
+    position: absolute;
+    top:0;
+    left:0;
+    right: 0;
+    bottom:0;
+    background-color: #FFF;
+    z-index: 9;
+} */

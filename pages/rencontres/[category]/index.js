@@ -37,12 +37,10 @@ export async function getServerSideProps(context) {
 export default function Module({ data }){
 
     function formatDate(dateString) {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
+        const base = dateString.split('T');
+        const [year, month, day] = base[0].split('-')
         return `${day}/${month}/${year}`;
-    }
+    }    
 
     const lastUpdate = formatDate(data.lastUpdate);
 
@@ -250,6 +248,10 @@ export default function Module({ data }){
                                     <option>Guyane</option>
                                     <option>La Reunion</option>
                                     <option>Mayotte</option>
+                                    <option>Polynésie Française</option>
+                                    <option>Saint-Pierre et Miquelon</option>
+                                    <option>Océan Indien</option>
+                                    <option>Nouvelle Calédonie</option>
                                 </select>
                                 <span className="material-icons">expand_more</span>
                             </div>
@@ -272,7 +274,7 @@ export default function Module({ data }){
                                         title={session.module.nom}
                                         link={`/rencontres/${session.module.slug}/session-${formatDate(session.dateDebut).replaceAll('/', '-')}-${session.region.normalize("NFD")
                                         .replace(/[\u0300-\u036f]/g, "")
-                                        .replace(/[.,]/g, "")
+                                        .replace(/[.,']/g, "")
                                         .replace(/\s+/g, '-')
                                         .toLowerCase()}`}
                                         dept={session.departement}

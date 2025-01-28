@@ -5,22 +5,25 @@ import styles from '@/styles/SessionsBack.module.css'
 export default function SessionsBack({isModule, date, session, code, region, title, id, setOpen, setAlert, setActions, action, status, moduleId, dept, user}){
 
     function formatDate(dateString) {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
+        const base = dateString.split('T');
+        const [year, month, day] = base[0].split('-')
         return `${day}/${month}/${year}`;
-    }
-
+    }    
+    
     const startDate = formatDate(date);
 
     const [number, setNumber] = useState(0)
+    const [presentNumber, setPresentNumber] = useState(0)
 
     const getParticipants = async () => {
         const fetcher = await fetch(`/api/registrations/bySession?sessionId=${session.id}`)
         const json = await fetcher.json()
         if(json.length > 0){
-            setNumber(json.filter((item) => !item.deleted).length)
+            const activeParticipants = json.filter((item) => !item.deleted);
+            setNumber(activeParticipants.length);
+
+            const presentParticipants = activeParticipants.filter((item) => item.presence === true).length;
+            setPresentNumber(presentParticipants);
         }
     }
 
@@ -60,7 +63,7 @@ export default function SessionsBack({isModule, date, session, code, region, tit
             <div className={`${styles.SessionBox} ${status == 'brouillon' ? styles.Brouillon : undefined}`}>
                 <div className="flex aligncenter space-between">
                     <div className="flex aligncenter gap15">
-                        <span className={styles.Date}>{startDate} - <span className={styles.Restant}>{joursRestants >= 0 ? `${joursRestants} jour${joursRestants > 1 ? 's': ''} restant${joursRestants > 1 ? 's': ''}` : 'Terminée'}</span> - <span className={styles.LastMaj}>{number} participant{number > 1 && 's'}</span></span>
+                        <span className={styles.Date}>{startDate} - <span className={styles.Restant}>{joursRestants >= 0 ? `${joursRestants} jour${joursRestants > 1 ? 's': ''} restant${joursRestants > 1 ? 's': ''}` : 'Terminée'}</span> - <span className={styles.LastMaj}>{number} participant{number > 1 && 's'}</span>&nbsp;- <span className={styles.LastMaj}>{presentNumber} présent{number > 1 && 's'}</span></span>
                     </div>
                     <span className={styles.Region}>{dept} - {region}</span>
                 </div>

@@ -46,7 +46,10 @@ export default function Header(){
                                 {user?.id ? (
                                     <>
                                         {(user.id == 10 || user.type == 'Administrateur' || user.type == 'DR') ? (
-                                            <li onClick={() => setActiveMenu(prev => !prev)} className={styles.pf}><Link href="/admin">Administration</Link></li>
+                                            <>
+                                                <li onClick={() => setActiveMenu(prev => !prev)} className={styles.pf}><Link href="/admin">Administration</Link></li>
+                                                <li onClick={() => setActiveMenu(prev => !prev)} className={styles.pf}><Link href="/espace-personnel">Espace personnel</Link></li>
+                                            </>
                                         ) : (
                                             <li onClick={() => setActiveMenu(prev => !prev)} className={styles.pf}><Link href="/espace-personnel">Espace personnel</Link></li>
                                         )}

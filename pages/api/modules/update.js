@@ -72,11 +72,11 @@ export default async function handle(req, res) {
 
       const now = new Date();
       let slug = moduleData.nom
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[.,]/g, "")
-        .replace(/\s+/g, '-')
-        .toLowerCase();
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[.,?]/g, "")
+      .replace(/\s+/g, '-')
+      .toLowerCase()
       
       const updatedModule = await prisma.module.update({
         where: { id: parseInt(moduleId) },

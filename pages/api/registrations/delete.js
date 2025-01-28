@@ -7,17 +7,31 @@ export default async function handle(req, res) {
         return;
     }
 
-    const { userId, sessionId } = req.query;
+    const { userId, sessionId, specialAccount } = req.query;
 
-    try {
+    if(specialAccount){
+        try {
 
-        await prisma.registration.deleteMany({
-            where: { userId: parseInt(userId), sessionId: parseInt(sessionId) },
-        });
+            await prisma.accountRegistration.deleteMany({
+                where: { accountId: parseInt(userId), sessionId: parseInt(sessionId) },
+            });
+    
+            res.json({ message: 'User supprimé avec succès' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: `Impossible de supprimer le user : ${error.message}` });
+        }
+    } else {
+        try {
 
-        res.json({ message: 'User supprimé avec succès' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: `Impossible de supprimer le user : ${error.message}` });
+            await prisma.registration.deleteMany({
+                where: { userId: parseInt(userId), sessionId: parseInt(sessionId) },
+            });
+    
+            res.json({ message: 'User supprimé avec succès' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: `Impossible de supprimer le user : ${error.message}` });
+        }
     }
 }

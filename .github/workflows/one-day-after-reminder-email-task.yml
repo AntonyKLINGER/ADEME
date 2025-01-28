@@ -1,0 +1,28 @@
+name: One Day After Reminder Email Task
+
+on:
+  schedule:
+    - cron: '30 16 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-daily-task:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run daily task
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          WEBSITE_URL: ${{ secrets.WEBSITE_URL }}
+        run: node .github/workflows/scripts/fetchDataDayAfter.js

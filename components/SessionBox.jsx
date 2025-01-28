@@ -4,12 +4,14 @@ import styles from '@/styles/SessionBox.module.css'
 export default function SessionBox({date, region, title, link, data, register, dept, see, detail, displayDept}){
 
     function formatDate(dateString) {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    }
+        if(dateString){
+            const base = dateString.split('T');
+            const [year, month, day] = base[0].split('-')
+            return `${day}/${month}/${year}`;
+        } else{
+            return '---'
+        }
+    }    
 
     return (
         <>

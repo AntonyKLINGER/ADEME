@@ -14,7 +14,17 @@ const regionSlugs = {
   'nouvelle-aquitaine': 'Nouvelle-Aquitaine',
   'occitanie': 'Occitanie',
   'pays-de-la-loire': 'Pays de la Loire',
-  'provence-alpes-cote-d-azur': 'Provence-Alpes-Côte d\'Azur'
+  'guyane': 'Guyane',
+  'martinique': 'Martinique',
+  'la-reunion': 'La Reunion',
+  'guadeloupe': 'Guadeloupe',
+  'mayotte': 'Mayotte',
+  'polynesie-francaise': 'Polynésie Française',
+  'provence-alpes-cote-d-azur': 'Provence-Alpes-Côte d\'Azur',
+  'saint-pierre-et-miquelon': 'Saint-Pierre et Miquelon',
+  'ocean-indien': 'Océan Indien',
+  'nouvelle-caledonie': "Nouvelle Calédonie",
+  'provence-alpes-cote-dazur': 'Provence-Alpes-Côte d\'Azur'
 };
 
 export default async function handle(req, res) {
@@ -39,8 +49,12 @@ export default async function handle(req, res) {
         region: region,
       },
       include: {
-        module: true,
-        metasSession: true,
+        module: {
+          include: {
+            metasModule: true,
+          },
+        },
+        metasSession: true
       },
     });
 

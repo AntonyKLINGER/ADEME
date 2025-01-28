@@ -8,18 +8,33 @@ const prisma = new PrismaClient();
 export default async function handler(req, res) {
   const { sujet, content, sessionId } = req.body;
 
-  // Récupérer les emails des participants à la session
   try {
+    // Récupérer les inscriptions des utilisateurs standards
     const registrations = await prisma.registration.findMany({
       where: {
-        sessionId: sessionId,
+        sessionId: parseInt(sessionId),
       },
       include: {
-        user: true, // Assuming there's a relation to a user table containing email
+        user: true, // Relation avec la table user pour obtenir l'email
       },
     });
 
-    const emails = registrations.map(registration => registration.user.mail);
+    // Récupérer les inscriptions des comptes spéciaux
+    const accountRegistrations = await prisma.accountRegistration.findMany({
+      where: {
+        sessionId: parseInt(sessionId),
+      },
+      include: {
+        account: true, // Relation avec la table account pour obtenir l'email
+      },
+    });
+
+    // Extraire les emails des utilisateurs standards et des comptes spéciaux
+    const userEmails = registrations.map(registration => registration.user.mail);
+    const accountEmails = accountRegistrations.map(registration => registration.account.email);
+
+    // Combiner les deux listes d'emails
+    const emails = [...userEmails, ...accountEmails];
 
     const transporter = nodemailer.createTransport({
       host: 'smtp-relay.brevo.com',

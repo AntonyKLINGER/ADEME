@@ -10,7 +10,7 @@ export default function Participant({ data, setActions, session }){
 
     const deleteUser = async () => {
         setAlert(null)
-        const fetcher = await fetch(`/api/registrations/delete?userId=${data.userId}&sessionId=${data.sessionId}`, { method: 'DELETE' })
+        const fetcher = await fetch(`/api/registrations/delete?userId=${data.userId ? data.userId : data.accountId}&sessionId=${data.sessionId}&${!data.userId && 'specialAccount=true'}`, { method: 'DELETE' })
         // const json = await fetcher.json()
         setActions(prev => prev+1)
     }
@@ -24,7 +24,38 @@ export default function Participant({ data, setActions, session }){
         });
     }
 
-    console.log(data.session.metasSession.nombreJours)
+    const generateBadge = async () => {
+        setNotif({
+            text: 'Le badge se génère, veuillez patienter...',
+            icon: 'hourglass_top'
+        }) 
+        const datas = {
+            nom: data.nom,
+            prenom: data.prenom,
+            program: data.session.metasSession.programmeSession,
+            organisation: data.user !== undefined && data.user.organisation || '',
+        };
+
+        const response = await fetch('/api/generate-badge', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datas),
+        });
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `badge_${data.nom}_${data.prenom}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    };
 
     return (
         <>
@@ -33,7 +64,8 @@ export default function Participant({ data, setActions, session }){
                     <span className={styles.UserName}><span className="material-icons">{data.deleted ? 'cancel' : 'person'}</span>{data.nom} {data.prenom}</span>
                     {!data.deleted && (
                         <button onClick={preDeleteUser} className={styles.Corb}><span className="material-icons">delete</span></button>
-                    )}                   
+                    )}    
+                    <button onClick={generateBadge} className={styles.Corb}><span className="material-icons">picture_as_pdf</span></button>               
                 </div>               
                 <div className={styles.Table}>
                     <div className="w22"><span className={styles.Label}>Nom</span>{data.nom}</div>
@@ -44,10 +76,12 @@ export default function Participant({ data, setActions, session }){
                     <div className="w22"><span className={styles.Label}>Fonction</span>{data.fonction}</div>
                     <div className="w30"><span className={styles.Label}>Type de fonction</span>{data.typeFonction}</div>
                     <div className="w20"><span className={styles.Label}>Ville</span>{data.ville ? data.ville : '-'}</div>
+                    <div className="w22"><span className={styles.Label}>Région</span>{data.region}</div>
                     <div className="w22"><span className={styles.Label}>Transport</span>{data.transport}</div>
-                    <div className="w22"><span className={styles.Label}>Repas</span>{data.repas ? 'J1 : Oui' : 'J1 : Non'}{data.session.metasSession.nombreJours == 2 ? data.repas2 ? ' / J2 : Oui' : ' / J2 : Non' : ''}{data.regime ? ` (${data.regime})` : ''}</div>
+                    <div className="w20"><span className={styles.Label}>Repas</span>{data.repas ? 'J1 : Oui' : 'J1 : Non'}{data.session.metasSession.nombreJours == 2 ? data.repas2 ? ' / J2 : Oui' : ' / J2 : Non' : ''}{data.regime ? ` (${data.regime})` : ''}</div>
                     <div className="w30"><span className={styles.Label}>Besoin spécifique</span>{data.besoins != null ? data.besoins : '-'}</div>
-                    <div className="w20"><span className={styles.Label}>Présence</span>{data.deleted ? 'Annulée' : data.days ? 'Complète' : '1/2'}</div>
+                    <div className="w20 mTop10"><span className={styles.Label}>Présence</span>{data.deleted ? 'Annulée' : data.days ? 'Complète' : '1/2'}</div>
+                    
                 </div>
             </div>
 

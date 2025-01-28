@@ -137,6 +137,21 @@
     border-top:1px dotted var(--primary)
 }
 
+.Quizzer{
+    border-collapse: collapse;
+    width: 100%;
+    margin:20px 0;
+}
+
+.Quizzer td{
+    padding: 5px;
+    font-weight: 300;
+}
+
+.Reviews h3{
+    font-weight: 500;
+}
+
 @media(max-width:1280px){
     .Number{
         padding:10px 15px

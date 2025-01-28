@@ -18,6 +18,18 @@
     color:var(--secondary)
 }
 
+.dayTitle{
+    text-transform: uppercase;
+    font-weight: 700;
+    display: inline-block;
+    margin-bottom: 20px;
+    font-size: 1.25rem;
+    color:var(--primary);
+    background:#FFF;
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
 .Loading{
     position: fixed;
     top:0;
@@ -144,4 +156,11 @@
 
 .Act{
     display: block;
+}
+
+.visu{
+    width: 100%;
+    aspect-ratio: 16/8;
+    object-fit: cover;
+    border-radius: 18px;
 }

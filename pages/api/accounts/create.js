@@ -15,7 +15,7 @@ function generatePassword(length) {
 
 export default async function handle(req, res) {
     if (req.method === 'POST') {
-        const { email, type } = req.body;
+        const { email, type, modules, regions } = req.body;
 
         try {
             // Vérifier si un compte avec cet email existe déjà
@@ -37,6 +37,8 @@ export default async function handle(req, res) {
                     email,
                     type,
                     password: hashedPassword,
+                    modules,
+                    regions
                 },
             });
 
@@ -49,6 +51,8 @@ export default async function handle(req, res) {
                     email,
                     type,
                     password,
+                    modules,
+                    regions
                 }),
             });
 

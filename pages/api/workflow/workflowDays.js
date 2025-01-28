@@ -10,13 +10,21 @@ export default async function handle(req, res) {
     
     try {
         const today = new Date();
-        const twoWeeksLater = new Date(today);
-        twoWeeksLater.setDate(today.getDate() + 3);
-
+        const threeDaysLater = new Date(today);
+        threeDaysLater.setDate(today.getDate() + 3);
+        threeDaysLater.setHours(0, 0, 0, 0);
+        
+        const startOfDay = new Date(threeDaysLater);
+        startOfDay.setHours(0, 0, 0, 0);
+        
+        const endOfDay = new Date(threeDaysLater);
+        endOfDay.setHours(23, 59, 59, 999);
+        
         const upcomingSessions = await prisma.session.findMany({
             where: {
                 dateDebut: {
-                    equals: twoWeeksLater,
+                    gte: startOfDay,
+                    lt: endOfDay,
                 },
             },
             include: {
@@ -25,10 +33,16 @@ export default async function handle(req, res) {
                         user: true,
                     },
                 },
+                accountRegistrations: {
+                    include: {
+                        account: true,
+                    },
+                },
                 metasSession: true,
                 module: true,
             },
         });
+
 
         for (const session of upcomingSessions) {
             const firstProgramme = session.metasSession.programmeSession[0];
@@ -71,9 +85,34 @@ export default async function handle(req, res) {
                     throw new Error(`Email request failed with status ${emailResponse.status}`);
                 }
             }
+
+            for (const accountRegistration of session.accountRegistrations) {
+                const accountData = accountRegistration.account;
+        
+                const emailResponse = await fetch(`${process.env.WEBSITE_URL}/api/emails/sessionDays`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        prenom: accountData.email.split('@')[0],
+                        email: accountData.email,
+                        nomRencontre: session.module.nom,
+                        dateRencontre: formattedDateDebut,
+                        lieuRencontre: session.metasSession.lieuRencontre || 'Lieu',
+                        nbJours: session.metasSession.nombreJours,
+                        mail_referent: session.metasSession.mail_referent,
+                        firstDayStartTime: firstDayStartTime
+                    })
+                });
+        
+                if (!emailResponse.ok) {
+                    throw new Error(`Email request failed with status ${emailResponse.status}`);
+                }
+            }            
         }
 
-        res.status(200).json({ message: "Emails sent successfully" });
+        res.status(200).json({ message: "Emails sended" });
     } catch (error) {
         console.error("Error fetching upcoming sessions or sending emails: ", error);
         res.status(500).json({ error: `Impossible de récupérer les enregistrements ou d'envoyer les emails : ${error.message}` });

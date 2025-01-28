@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    .container{
+        background:#F2F2F2;
+        padding:20px;
+        box-sizing: border-box;
+    }
+
+    .content{
+        background-color: #FFF;
+        padding:30px;
+        box-sizing: border-box;
+        max-width:900px;
+        margin-left:auto;
+        margin-right:auto;
+        font-family: "Outfit" ,sans-serif;
+    }
+
+    .text{
+        margin-top:20px;
+    }
+
+    .text p{
+        font-weight: 400;
+        font-size: 1rem;
+        line-height:1.5
+    }
+
+    .footer{
+        border-left:1px solid red;
+        padding:20px;
+        padding-left:40px;
+        box-sizing: border-box;
+        margin-top:50px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="content">
+        <img src="{{siteUrl}}/medias/email-top.jpg" style="width:100%;" alt="top email" />
+        <div class="text">
+            <p>Cher {{prenom}},</p>
+            <p>Nous tenons à vous remercier chaleureusement pour votre participation d’hier à la <strong>Rencontre Territoire Engagé Transition Ecologique</strong>. Votre présence et votre engagement ont grandement contribué au succès de cet événement.</p>
+            <p><strong>Afin de continuer à améliorer nos événements, nous souhaitons recueillir votre avis. Merci de prendre quelques instants pour remplir notre questionnaire de satisfaction également présent dans votre <a href="{{siteUrl}}/espace-personnel">Espace personnel</a>.</strong></p>
+            <p>Nous espérons que vous avez trouvé ces moments d'échange et de partage enrichissants, et que vous repartez avec de nouvelles perspectives et des idées inspirantes pour votre territoires.</p>
+            <p>Vous pouvez retrouver les informations de la session (des ressources mises à disposition, les coordonnées des intervenants, ...) dans votre <a href="{{siteUrl}}/espace-personnel">Espace personnel</a>, onglet Mes rencontres puis Mes rencontres passées.</p>
+            <p>Nous vous remercions encore une fois pour votre participation et espérons vous retrouver lors de nos prochains événements.</p>
+            <p>Cordialement,</p>
+            <p>L'équipe des Rencontres Territoire Engagé Transition Ecologique</p>
+            <p style="border-top: 1px solid #e0e0e0;padding-top: 20px;color: #a5a5a5;">Merci de ne pas répondre à ce mail. Pour toute question relative à la plateforme, vous pouvez nous contacter à l’adresse mail suivante : rencontres.ademe@i-care-consult.com</p>
+        </div>
+        <div class="footer">
+            <p style="font-size:1rem;margin:0px !important">
+                <span style="color:#274F98;display:block;">En savoir plus sur :</span>
+                <a style="text-decoration:none;color:#d13e2a;" href="{{siteUrl}}">{{siteUrl}}</a>
+            </p>
+        </div>
+    </div>
+  </div>
+</body>
+</html>

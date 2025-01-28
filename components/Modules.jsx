@@ -10,6 +10,8 @@ import styles from '@/styles/Admin.module.css'
 
 export default function Modules({setPage, user}){
 
+    console.log(user)
+
     const [open, setOpen] = useState(null)
     const [alert, setAlert] = useState(null)
     const [notif, setNotif] = useState(null)
@@ -146,29 +148,62 @@ export default function Modules({setPage, user}){
                         </div>
                     </div>
                     <div className="mTop30">
-                        {modules.length > 0 ? (
-                            modules.map((module, index) => {
-                                return (
-                                    <div key={index} className="w100 mBot10">
-                                        <ModulesBack 
-                                            date={module.datePublication}
-                                            code={module.code}
-                                            lastUpdate={module.lastUpdate}
-                                            category={module.pilier}
-                                            title={module.nom}
-                                            id={module.id}
-                                            setOpen={setOpen}
-                                            setAlert={setAlert}
-                                            sessions={module.sessions}
-                                            action={() => deleteModule(module.id)}
-                                            user={user}
-                                        />
-                                    </div>                                     
-                                )
-                            })
+                        {user.type == "Administrateur" ? (
+                            <>
+                                {modules.length > 0 ? (
+                                    modules.map((module, index) => {
+                                        return (
+                                            <div key={index} className="w100 mBot10">
+                                                <ModulesBack 
+                                                    date={module.datePublication}
+                                                    code={module.code}
+                                                    lastUpdate={module.lastUpdate}
+                                                    category={module.pilier}
+                                                    title={module.nom}
+                                                    id={module.id}
+                                                    setOpen={setOpen}
+                                                    setAlert={setAlert}
+                                                    sessions={module.sessions}
+                                                    action={() => deleteModule(module.id)}
+                                                    user={user}
+                                                />
+                                            </div>                                     
+                                        )
+                                    })
+                                ) : (
+                                    <>
+                                        <span>Il n'y a aucun module pour le moment.</span>
+                                    </>
+                                )}                            
+                            </>
                         ) : (
                             <>
-                                <span>Il n'y a aucun module pour le moment.</span>
+                                {modules.filter(module => user.modules.includes(module.code)).length > 0 ? (
+                                    modules.filter(module => user.modules.includes(module.code)).map((module, index) => {
+                                        const filteredSessions = module.sessions.filter(session => user.regions.includes(session.region));
+                                        return (
+                                            <div key={index} className="w100 mBot10">
+                                                <ModulesBack 
+                                                    date={module.datePublication}
+                                                    code={module.code}
+                                                    lastUpdate={module.lastUpdate}
+                                                    category={module.pilier}
+                                                    title={module.nom}
+                                                    id={module.id}
+                                                    setOpen={setOpen}
+                                                    setAlert={setAlert}
+                                                    sessions={filteredSessions}
+                                                    action={() => deleteModule(module.id)}
+                                                    user={user}
+                                                />
+                                            </div>                                     
+                                        )
+                                    })
+                                ) : (
+                                    <>
+                                        <span>Il n'y a aucun module pour le moment.</span>
+                                    </>
+                                )}                            
                             </>
                         )}
                     </div>

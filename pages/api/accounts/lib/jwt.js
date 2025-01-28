@@ -3,10 +3,10 @@ import jwt from 'jsonwebtoken';
 
 export default async function handle(req, res) {
     if(req.method === 'POST') {
-        const { mail, id, type } = req.body
+        const { mail, id, type, regions, modules } = req.body
 
         const token = jwt.sign(
-            { mail: mail, id: id, type: type },
+            { mail: mail, id: id, type: type, regions: regions, modules: modules },
             process.env.JWT_SECRET,
             { expiresIn: '5h' }
         );

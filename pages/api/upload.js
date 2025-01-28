@@ -9,8 +9,8 @@ export const config = {
   },
 };
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+const supabaseUrl = "https://eazuwwpllqueujyivlce.supabase.co"; //process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
@@ -39,60 +39,70 @@ export default async function handler(req, res) {
   if (!data) return;
 
   const urlsPDF = [];
-  
+
   for (const fileArray of Object.values(data.files)) {
     const files = Array.isArray(fileArray) ? fileArray : [fileArray];
     for (const file of files) {
-      const filePath = path.relative('.', file.filepath);
-      const fileBuffer = fs.readFileSync(file.filepath);
-      const filename = `uploads/${file.originalFilename}`;
+      // Normalisation et sécurisation du nom de fichier
+      const safeFilename = file.originalFilename
+        .normalize('NFC') // Normalisation UTF-8
+        .replace(/[^a-zA-Z0-9_.-]/g, '_'); // Remplace les caractères spéciaux
+      const uploadFilename = `uploads/${safeFilename}`;
 
-      const { data: existingFiles, error: listError } = await supabase
-        .storage
-        .from('ademe')
-        .list('uploads', {
-          search: file.originalFilename
+      try {
+        // Vérification si le fichier existe déjà dans Supabase
+        const { data: existingFiles, error: listError } = await supabase
+          .storage
+          .from('ademe')
+          .list('uploads', {
+            search: safeFilename,
+          });
+
+        if (listError) {
+          console.error('Erreur lors de la vérification de l\'existence du fichier sur Supabase:', listError);
+          continue;
+        }
+
+        let finalFilename = uploadFilename;
+        if (existingFiles && existingFiles.length > 0) {
+          const timestamp = Date.now();
+          finalFilename = `uploads/${timestamp}_${safeFilename}`;
+        }
+
+        // Lecture et upload du fichier
+        const fileBuffer = fs.readFileSync(file.filepath);
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('ademe')
+          .upload(finalFilename, fileBuffer, {
+            contentType: file.mimetype,
+          });
+
+        if (uploadError) {
+          console.error('Erreur lors de l\'upload sur Supabase:', uploadError);
+          continue;
+        }
+
+        // Récupération de l'URL publique
+        const { data: publicURL, error: urlError } = await supabase.storage
+          .from('ademe')
+          .getPublicUrl(finalFilename);
+
+        if (urlError) {
+          console.error('Erreur lors de la récupération de l\'URL publique sur Supabase:', urlError);
+          continue;
+        }
+
+        console.log('Public URL:', publicURL);
+
+        urlsPDF.push({
+          nom: file.originalFilename,
+          url: publicURL.publicUrl,
         });
-
-      if (listError) {
-        console.error('Erreur lors de la vérification de l\'existence du fichier sur Supabase:', listError);
-        continue;
+      } catch (error) {
+        console.error('Erreur générale lors du traitement du fichier:', error);
       }
-
-      let uploadFilename = filename;
-      if (existingFiles && existingFiles.length > 0) {
-        const timestamp = Date.now();
-        uploadFilename = `uploads/${timestamp}_${file.originalFilename}`;
-      }
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('ademe')
-        .upload(uploadFilename, fileBuffer, {
-          contentType: file.mimetype,
-        });
-
-      if (uploadError) {
-        console.error('Erreur lors de l\'upload sur Supabase:', uploadError);
-        continue;
-      }
-
-      const { data: publicURL, error: urlError } = await supabase.storage
-        .from('ademe')
-        .getPublicUrl(uploadFilename);
-
-      if (urlError) {
-        console.error('Erreur lors de la récupération de l\'URL publique sur Supabase:', urlError);
-        continue;
-      }
-
-      console.log('Public URL:', publicURL);
-
-      urlsPDF.push({
-        nom: file.originalFilename,
-        url: publicURL.publicUrl
-      });
     }
   }
 
-  res.status(200).json({ urlsPDF });
+  res.status(200).json({ urlsPDF, env1: supabaseUrl });
 }

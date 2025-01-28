@@ -47,23 +47,28 @@ model User {
   organisation  String?
   registrations Registration[]
   reviews       Review[]
+  Satisfaction  Satisfaction[]
   sessions      Session[]      @relation("UserSessions")
 }
 
 model Session {
-  id              Int            @id @default(autoincrement())
-  dateDebut       DateTime
-  moduleId        Int
-  departement     String
-  region          String
-  datePublication DateTime?
-  lastUpdate      DateTime?
-  status          String
-  metasSession    MetasSession?
-  registrations   Registration[]
-  reviews         Review[]
-  module          Module         @relation(fields: [moduleId], references: [id])
-  users           User[]         @relation("UserSessions")
+  id                   Int                   @id @default(autoincrement())
+  dateDebut            DateTime
+  moduleId             Int
+  departement          String
+  region               String
+  datePublication      DateTime?
+  lastUpdate           DateTime?
+  status               String
+  accountRegistrations AccountRegistration[]
+  AccountReview        AccountReview[]
+  AccountSatisfaction  AccountSatisfaction[]
+  metasSession         MetasSession?
+  registrations        Registration[]
+  reviews              Review[]
+  Satisfaction         Satisfaction[]
+  module               Module                @relation(fields: [moduleId], references: [id])
+  users                User[]                @relation("UserSessions")
 }
 
 model MetasSession {
@@ -86,29 +91,33 @@ model MetasSession {
 }
 
 model Registration {
-  id           Int      @id @default(autoincrement())
-  civilite     String
-  nom          String
-  prenom       String
-  mail         String
-  structure    String
-  fonction     String?
-  typeFonction String
-  ville        String?
-  telephone    String?
-  transport    String?
-  besoins      String?
-  repas        Boolean
-  userId       Int
-  sessionId    Int
-  region       String
-  repas2       Boolean?
-  days         Boolean?
-  regime       String?
-  deleted      Boolean?
-  hebergement  String?
-  session      Session  @relation(fields: [sessionId], references: [id])
-  user         User     @relation(fields: [userId], references: [id])
+  id                      Int            @id @default(autoincrement())
+  civilite                String
+  nom                     String
+  prenom                  String
+  mail                    String
+  structure               String
+  fonction                String?
+  typeFonction            String
+  ville                   String?
+  telephone               String?
+  transport               String?
+  besoins                 String?
+  repas                   Boolean
+  userId                  Int
+  sessionId               Int
+  region                  String
+  repas2                  Boolean?
+  days                    Boolean?
+  regime                  String?
+  deleted                 Boolean?
+  hebergement             String?
+  presence                Boolean?
+  programmeTETE           String?
+  participationUlterieure Boolean?
+  session                 Session        @relation(fields: [sessionId], references: [id])
+  user                    User           @relation(fields: [userId], references: [id])
+  Satisfaction            Satisfaction[]
 }
 
 model Review {
@@ -122,8 +131,78 @@ model Review {
 }
 
 model Account {
-  id       Int     @id @default(autoincrement()) @db.SmallInt
-  email    String  @unique
-  password String?
-  type     String?
+  id                   Int                   @id @default(autoincrement()) @db.SmallInt
+  email                String                @unique
+  password             String?
+  type                 String?
+  regions              Json?
+  modules              Json?
+  accountRegistrations AccountRegistration[]
+  AccountReview        AccountReview[]
+  AccountSatisfaction  AccountSatisfaction[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Satisfaction {
+  id             BigInt        @id @default(autoincrement())
+  userId         Int?
+  sessionId      Int?
+  created_at     DateTime      @default(now()) @db.Timestamptz(6)
+  responses      Json?
+  registrationId Int?
+  Registration   Registration? @relation(fields: [registrationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Session        Session?      @relation(fields: [sessionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User           User?         @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model AccountRegistration {
+  id                      Int                   @id @default(autoincrement())
+  civilite                String?
+  nom                     String?
+  prenom                  String?
+  mail                    String?
+  structure               String?
+  fonction                String?
+  typeFonction            String?
+  ville                   String?
+  telephone               String?
+  transport               String?
+  besoins                 String?
+  repas                   Boolean?
+  accountId               Int
+  sessionId               Int
+  region                  String?
+  repas2                  Boolean?
+  days                    Boolean?
+  regime                  String?
+  deleted                 Boolean?
+  hebergement             String?
+  presence                Boolean?
+  programmeTETE           String?
+  participationUlterieure Boolean?
+  account                 Account               @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  session                 Session               @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  AccountSatisfaction     AccountSatisfaction[]
+}
+
+model AccountReview {
+  id          Int     @id @default(autoincrement())
+  note        Int
+  commentaire String
+  accountId   Int
+  sessionId   Int
+  Account     Account @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Session     Session @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model AccountSatisfaction {
+  id                  BigInt               @id @default(autoincrement())
+  accountId           Int?
+  sessionId           Int?
+  created_at          DateTime?            @default(now()) @db.Timestamptz(6)
+  responses           Json?
+  registrationId      Int?
+  Account             Account?             @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  AccountRegistration AccountRegistration? @relation(fields: [registrationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Session             Session?             @relation(fields: [sessionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

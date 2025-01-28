@@ -1,4 +1,4 @@
-import Router from 'next/router';
+import Router, { useRouter } from 'next/router';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import Head from 'next/head'
@@ -15,6 +15,9 @@ export default function App({ Component, pageProps }) {
   Router.events.on('routeChangeComplete', () => NProgress.done());
   Router.events.on('routeChangeError', () => NProgress.done());
 
+  const router = useRouter();
+  const isPresencePage = router.pathname === '/presence';
+
   return (
     <>
       <Head>
@@ -22,11 +25,11 @@ export default function App({ Component, pageProps }) {
       </Head>
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet" />
-      <Header />
-        <div className="page">
-          <Component {...pageProps} />
-        </div>   
-      <Footer />
+      {!isPresencePage && <Header />}
+      <div className="page">
+        <Component {...pageProps} />
+      </div>
+      {!isPresencePage && <Footer />}
     </>
   )
 }
