@@ -1,8 +1,11 @@
 import prisma from '@/lib/prisma';
+import { requireActAs } from '@/utils/auth';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { userId, sessionId, specialAccount } = req.query;
+
+    if (!requireActAs(req, res, userId, specialAccount)) return;
 
     if(specialAccount){
       try {

@@ -1,10 +1,12 @@
 import bcrypt from 'bcrypt';
 import prisma from '@/prisma';
 import fetch from 'node-fetch';
+import { requireAdmin } from '@/utils/auth';
 
 const SALT_ROUNDS = 10;
 
 export default async function handle(req, res) {
+    if (!requireAdmin(req, res)) return;
     if (req.method === 'PUT') {
         const { id, email, type, modules, regions, nom, prenom } = req.body;
 

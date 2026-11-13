@@ -1,12 +1,14 @@
 import fs from 'fs'
 import path from 'path'
+import { requireAdmin } from '@/utils/auth';
 
 export default async function handler(req, res) {
+  if (!requireAdmin(req, res)) return;
   if (req.method !== 'POST') return res.status(405).end()
 
   const { filename, newBodyHtml } = req.body
 
-  if (!filename || !filename.endsWith('.hbs')) {
+  if (!filename || !/^[\w-]+\.hbs$/.test(filename)) {
     return res.status(400).json({ error: 'Nom de fichier invalide' })
   }
 

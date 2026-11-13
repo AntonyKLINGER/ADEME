@@ -1,7 +1,10 @@
 import prisma from '@/prisma';
+import { requireActAs } from '@/utils/auth';
 
 export default async function handle(req, res) {
   const { userId, status, specialAccount } = req.query;
+
+  if (!requireActAs(req, res, userId, specialAccount === 'true')) return;
 
   let dateCondition = {};
   let now = new Date();

@@ -2,9 +2,11 @@ const nodemailer = require('nodemailer');
 const hbs = require('nodemailer-express-handlebars');
 const path = require('path');
 const { BREVO_SMTP_USER, EMAIL_FROM, EMAIL_REPLY_TO } = require('../../../utils/emailUtils');
+import { requireInternalOrAdmin } from '@/utils/auth';
 
 
 export default async function handler(req, res) {
+  if (!requireInternalOrAdmin(req, res)) return;
 
   const { email, password, type, regions, modules } = req.body
 

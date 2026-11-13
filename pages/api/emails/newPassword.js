@@ -2,11 +2,15 @@ const nodemailer = require('nodemailer');
 const hbs = require('nodemailer-express-handlebars');
 const path = require('path');
 const { BREVO_SMTP_USER, EMAIL_FROM, EMAIL_REPLY_TO } = require('../../../utils/emailUtils');
+import { requireInternalOrAdmin } from '@/utils/auth';
 
 
 export default async function handler(req, res) {
+  if (!requireInternalOrAdmin(req, res)) return;
 
-  const { email, password } = req.body
+  // resetUrl : lien de réinitialisation (forgot-password.js) ; password : le
+  // nouveau mot de passe, une fois le lien ouvert (reset-password.js).
+  const { email, password, resetUrl } = req.body
 
   const transporter = nodemailer.createTransport({
     host: 'smtp-relay.brevo.com',
@@ -33,10 +37,11 @@ export default async function handler(req, res) {
     from: EMAIL_FROM,
     replyTo: EMAIL_REPLY_TO,
     to: email,
-    subject: "Votre nouveau mot de passe !",
-    template: 'newpassword',
+    subject: resetUrl ? "Réinitialisation de votre mot de passe" : "Votre nouveau mot de passe !",
+    template: resetUrl ? 'resetpassword' : 'newpassword',
     context: {
         password: password,
+        resetUrl: resetUrl,
         siteUrl: process.env.WEBSITE_URL,
     }
   };

@@ -1,5 +1,6 @@
 import prisma from '@/prisma';
 import fetch from 'node-fetch';
+import { internalHeaders, requireActAs } from '@/utils/auth';
 
 export default async function handle(req, res) {
     if (req.method !== 'POST') {
@@ -7,11 +8,19 @@ export default async function handle(req, res) {
         return res.status(405).json({ error: `Method ${req.method} not allowed` });
     }
 
-    const { inscriptionData, userId, sessionId, type } = req.body;
+    const { userId, sessionId, type } = req.body;
+    // Champs saisis dans le formulaire seulement : ni rôle, ni présence, ni
+    // statut, ni identifiants, ni écriture imbriquée sur une relation.
+    const inscriptionData = req.body.inscriptionData && Object.fromEntries(
+        Object.entries(req.body.inscriptionData).filter(([key, value]) =>
+            !['id', 'userId', 'accountId', 'sessionId', 'role', 'presence', 'deleted'].includes(key)
+            && (value === null || ['string', 'number', 'boolean'].includes(typeof value))));
 
     if (!userId || !sessionId || !inscriptionData || !type) {
         return res.status(400).json({ error: 'Missing required fields: userId, sessionId, inscriptionData, or type' });
     }
+
+    if (!requireActAs(req, res, userId, type === 'special')) return;
 
     try {
         console.log("Début de la requête");
@@ -137,6 +146,7 @@ export default async function handle(req, res) {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
+                ...internalHeaders(),
             },
             body: JSON.stringify({
                 prenom: type == 'special' ? (inscriptionData.prenom !== null && inscriptionData.prenom != undefined) ? inscriptionData.prenom : inscriptionData.email : userData.prenom,
@@ -165,9 +175,7 @@ export default async function handle(req, res) {
 
     } catch (error) {
         // Log plus détaillé dans la réponse JSON
-        return res.status(500).json({
-            error: `Impossible de créer l'enregistrement : ${error.message}`,
-            stack: error.stack, // Inclure la trace de l'erreur pour plus de détails
-        });
+        console.error(error);
+        return res.status(500).json({ error: "Impossible de créer l'enregistrement" });
     }
 }

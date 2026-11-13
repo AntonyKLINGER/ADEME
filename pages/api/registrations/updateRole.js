@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma';
+import { requireAdmin } from '@/utils/auth';
 
 export default async function handler(req, res) {
+  if (!requireAdmin(req, res)) return;
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }

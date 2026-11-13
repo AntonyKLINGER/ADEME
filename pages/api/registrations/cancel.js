@@ -1,4 +1,5 @@
 import prisma from '@/prisma';
+import { requireActAs } from '@/utils/auth';
 
 export default async function handle(req, res) {
     if (req.method !== 'POST') {
@@ -8,6 +9,8 @@ export default async function handle(req, res) {
     }
 
     const { userId, sessionId, type } = req.body;
+
+    if (!requireActAs(req, res, userId, type === 'special')) return;
 
     if (!userId || !sessionId) {
         return res.status(400).send("userId et sessionId sont requis.");

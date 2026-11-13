@@ -1,18 +1,25 @@
 import bcrypt from 'bcrypt';
 import prisma from '@/prisma';
 import fetch from 'node-fetch'
+import { internalHeaders, stripPasswords } from '@/utils/auth';
 
 const SALT_ROUNDS = 10;
 
 export default async function handle(req, res) {
     if (req.method === 'POST') {
-        const { userData } = req.body;
-        const { motDePasse } = userData;
+        // Champs du formulaire d'inscription seulement.
+        const { nom, prenom, mail, telephone, motDePasse, fonction, region, organisation, newsletter } = req.body.userData || {};
+
+        if (typeof motDePasse !== 'string' || motDePasse.length < 6) {
+            return res.status(400).json({ error: 'Mot de passe trop court' });
+        }
 
         try {
-            const hashedPassword = await bcrypt.hash(motDePasse, SALT_ROUNDS);
-            
-            userData.motDePasse = hashedPassword;
+            const userData = {
+                nom, prenom, mail, telephone, fonction, region, organisation,
+                newsletter: !!newsletter,
+                motDePasse: await bcrypt.hash(motDePasse, SALT_ROUNDS),
+            };
 
             const newUser = await prisma.user.create({
                 data: userData,
@@ -22,6 +29,7 @@ export default async function handle(req, res) {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
+                    ...internalHeaders(),
                 },
                 body: JSON.stringify({
                     prenom: userData.prenom,
@@ -29,7 +37,7 @@ export default async function handle(req, res) {
                 })
             })
 
-            res.status(201).json(newUser);
+            res.status(201).json(stripPasswords(newUser));
         } catch (error) {
             res.status(500).json({ error: `Impossible de créer le compte: ${error.message}` });
         }

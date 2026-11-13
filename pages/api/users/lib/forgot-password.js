@@ -1,92 +1,51 @@
-import bcrypt from 'bcrypt';
 import prisma from '@/prisma';
-const crypto = require('crypto');
 import fetch from 'node-fetch';
+import { internalHeaders } from '@/utils/auth';
+import { rateLimit } from '@/utils/rateLimit';
+import { signResetToken } from '@/utils/session';
 
-function generatePassword(length = 10) {
-    return crypto.randomBytes(length)
-        .toString('base64')
-        .replace(/\+/g, '0')
-        .replace(/\//g, '0')
-        .substring(0, length);
-}
-
-const SALT_ROUNDS = 10;
-
+// Envoie un lien de réinitialisation : le mot de passe ne change qu'à son
+// ouverture (reset-password.js), par la personne qui reçoit l'email.
 export default async function handle(req, res) {
-    if (req.method === 'POST') {
-        const { mail } = req.body;
+    if (req.method !== 'POST') {
+        res.setHeader('Allow', ['POST']);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
+        return;
+    }
 
-        try {
-            const newPassword = generatePassword();
-            const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    if (!rateLimit(req, res, 'forgot-password', 5, 15 * 60 * 1000)) return;
 
-            // Vérifier si le mail existe dans `user`
-            const user = await prisma.user.findUnique({
-                where: { mail: mail }
-            });
+    const { mail } = req.body;
 
-            if (user) {
-                // Si l'utilisateur existe, mettre à jour le mot de passe
-                const updatedUser = await prisma.user.update({
-                    where: { mail: mail },
-                    data: {
-                        motDePasse: hashedPassword
-                    },
-                });
+    try {
+        if (typeof mail === 'string' && mail) {
+            const user = await prisma.user.findUnique({ where: { mail } });
+            const account = user ? null : await prisma.account.findUnique({ where: { email: mail } });
+            const target = user
+                ? { id: user.id, account: false, hash: user.motDePasse }
+                : account && { id: account.id, account: true, hash: account.password };
 
-                // Envoyer un email avec le nouveau mot de passe
-                await fetch(`${process.env.WEBSITE_URL}/api/emails/newPassword`, {
+            if (target) {
+                const token = signResetToken(target);
+                // Sans attendre l'envoi : le temps de réponse ne doit pas dire
+                // si l'adresse a un compte.
+                fetch(`${process.env.WEBSITE_URL}/api/emails/newPassword`, {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",
+                        ...internalHeaders(),
                     },
                     body: JSON.stringify({
                         email: mail,
-                        password: newPassword
+                        resetUrl: `${process.env.WEBSITE_URL}/api/users/lib/reset-password?token=${encodeURIComponent(token)}`,
                     })
-                });
-
-                return res.json(updatedUser);
-            } else {
-                // Si l'utilisateur n'existe pas dans `user`, chercher dans `account`
-                const account = await prisma.account.findUnique({
-                    where: { email: mail }
-                });
-
-                if (account) {
-                    // Si un compte existe, mettre à jour le mot de passe
-                    const updatedAccount = await prisma.account.update({
-                        where: { email: mail },
-                        data: {
-                            password: hashedPassword
-                        },
-                    });
-
-                    // Envoyer un email avec le nouveau mot de passe
-                    await fetch(`${process.env.WEBSITE_URL}/api/emails/newPassword`, {
-                        method: 'POST',
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            email: mail,
-                            password: newPassword
-                        })
-                    });
-
-                    return res.json(updatedAccount);
-                } else {
-                    // Si aucun utilisateur ou compte n'est trouvé
-                    throw new Error('Email not found in both user and account.');
-                }
+                }).catch((error) => console.error(error));
             }
-        } catch (error) {
-            // Gérer les erreurs
-            return res.status(500).json({ error: error.message });
         }
-    } else {
-        res.setHeader('Allow', ['POST']);
-        res.status(405).end(`Method ${req.method} Not Allowed`);
+    } catch (error) {
+        console.error(error);
     }
+
+    // Même réponse que l'adresse ait un compte ou non.
+    return res.json({ success: true });
 }

@@ -1,4 +1,5 @@
 import prisma from '@/prisma';
+import { getSession, isAdmin, isPresenceKiosk, stripPasswords } from '@/utils/auth';
 
 export default async function handle(req, res) {
   const { sessionId } = req.query;
@@ -50,8 +51,13 @@ export default async function handle(req, res) {
       })),
     ];
 
-    // Retourner la réponse avec les données combinées
-    res.json(combinedRegistrations);
+    // Retourner la réponse avec les données combinées. La page publique d'une
+    // rencontre ne compte que les inscriptions actives : rien d'autre hors
+    // back-office et borne de présence.
+    const session = getSession(req);
+    res.json(isAdmin(session) || isPresenceKiosk(session)
+      ? stripPasswords(combinedRegistrations)
+      : combinedRegistrations.map(({ deleted }) => ({ deleted })));
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Une erreur est survenue lors de la récupération des inscriptions' });

@@ -2,6 +2,7 @@ import { IncomingForm } from 'formidable';
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import { requireAdmin } from '@/utils/auth';
 
 export const config = {
   api: {
@@ -14,6 +15,7 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
+  if (!requireAdmin(req, res)) return;
   const uploadDir = path.resolve('/tmp/uploads');
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });

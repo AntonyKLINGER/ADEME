@@ -1,8 +1,10 @@
 import prisma from '@/prisma'
+import { requireActAs } from '@/utils/auth';
 
 export default async function handle(req, res) {
     if (req.method === 'DELETE') {
         const { id } = req.query;
+        if (!requireActAs(req, res, id, false)) return;
         const userId = parseInt(id);
 
         try {

@@ -1,6 +1,12 @@
 import prisma from '@/lib/prisma';
+import { getSession, isAdmin, isPresenceKiosk } from '@/utils/auth';
 
 export default async function handler(req, res) {
+  const session = getSession(req);
+  if (!isAdmin(session) && !isPresenceKiosk(session)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   if (req.method === 'PUT') {
     const { userId, accountId, sessionId, presence } = req.body;
 

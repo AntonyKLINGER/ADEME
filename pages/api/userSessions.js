@@ -1,7 +1,10 @@
 import prisma from '@/prisma';
+import { requireActAs } from '@/utils/auth';
 
 export default async function handler(req, res) {
     if (req.method === 'GET') {
+        if (!requireActAs(req, res, req.query.userId, false)) return;
+
         const userId = parseInt(req.query.userId, 10);
         const status = req.query.status;
 

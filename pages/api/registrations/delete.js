@@ -1,6 +1,8 @@
 import prisma from '@/prisma'
+import { requireAdmin } from '@/utils/auth';
 
 export default async function handle(req, res) {
+    if (!requireAdmin(req, res)) return;
     if (req.method !== 'DELETE') {
         res.setHeader('Allow', ['DELETE']);
         res.status(405).end(`Method ${req.method} Not Allowed`);

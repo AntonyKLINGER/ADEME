@@ -1,11 +1,16 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
+import { requireSession } from '@/utils/auth';
 
 export default async (req, res) => {
+  if (!requireSession(req, res)) return;
+
   if (req.method === 'POST') {
     try {
-      const { nom, prenom, program, organisation, role } = req.body
+      const { nom, prenom, program, organisation } = req.body
+      // `role` compose un chemin de fichier : liste fermée.
+      const role = ['participant', 'intervenant', 'organisateur'].includes(req.body.role) ? req.body.role : 'participant'
 
       function wrapText(text, font, fontSize, maxWidth) {
         const words = text.split(' ');

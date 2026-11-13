@@ -1,6 +1,8 @@
 import prisma from '@/prisma'
+import { requireAdmin, stripPasswords } from '@/utils/auth';
 
 export default async function handle(req, res) {
+  if (!requireAdmin(req, res)) return;
 
   let queryOptions = {}
 
@@ -11,5 +13,5 @@ export default async function handle(req, res) {
   });
   
 
-  res.json(accounts);
+  res.json(stripPasswords(accounts));
 }

@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import prisma from '@/prisma';
 import fetch from 'node-fetch';
+import { requireAdmin, internalHeaders } from '@/utils/auth';
 
 const SALT_ROUNDS = 10;
 
@@ -14,6 +15,7 @@ function generatePassword(length) {
 }
 
 export default async function handle(req, res) {
+    if (!requireAdmin(req, res)) return;
     if (req.method === 'POST') {
         const { email, type, modules, regions, prenom, nom } = req.body;
 
@@ -50,6 +52,7 @@ export default async function handle(req, res) {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
+                    ...internalHeaders(),
                 },
                 body: JSON.stringify({
                     email,

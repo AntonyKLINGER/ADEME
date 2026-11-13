@@ -1,7 +1,9 @@
 import prisma from '@/prisma'
 import fetch from 'node-fetch'
+import { requireInternalOrAdmin, internalHeaders } from '@/utils/auth';
 
 export default async function handle(req, res) {
+    if (!requireInternalOrAdmin(req, res)) return;
     if (req.method !== 'GET') {
         res.setHeader('Allow', ['GET']);
         res.status(405).end(`Method ${req.method} Not Allowed`);
@@ -94,6 +96,7 @@ export default async function handle(req, res) {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",
+                        ...internalHeaders(),
                     },
                     body: JSON.stringify({
                         prenom: userData.prenom,
@@ -122,6 +125,7 @@ export default async function handle(req, res) {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",
+                        ...internalHeaders(),
                     },
                     body: JSON.stringify({
                         prenom: accountData.email.split('@')[0],

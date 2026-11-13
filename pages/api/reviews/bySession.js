@@ -1,6 +1,8 @@
 import prisma from '@/prisma';
+import { requireAdmin, stripPasswords } from '@/utils/auth';
 
 export default async function handle(req, res) {
+  if (!requireAdmin(req, res)) return;
   const { sessionId } = req.query;
 
   const parsedSessionId = parseInt(sessionId);
@@ -38,7 +40,7 @@ export default async function handle(req, res) {
       })),
     ];
 
-    res.json(combinedReviews);
+    res.json(stripPasswords(combinedReviews));
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Une erreur est survenue lors de la récupération des reviews' });

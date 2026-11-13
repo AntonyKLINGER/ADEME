@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { requireActAs } from '@/utils/auth';
 
 // Fonction pour sérialiser correctement les BigInt
 function serializeBigIntFields(data) {
@@ -12,6 +13,8 @@ function serializeBigIntFields(data) {
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { userId, sessionId, registrationId, responses, type } = req.body;
+
+    if (!requireActAs(req, res, userId, type === 'special')) return;
 
     try {
       console.log('Creating new satisfaction with data:', { userId, sessionId, responses, type });

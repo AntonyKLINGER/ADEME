@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import prisma from '@/prisma';
 import { setSessionCookie } from '@/utils/session';
+import { rateLimit } from '@/utils/rateLimit';
 
 export default async function handle(req, res) {
     if (req.method !== 'POST') {
@@ -8,6 +9,8 @@ export default async function handle(req, res) {
         res.status(405).end(`Method ${req.method} Not Allowed`);
         return;
     }
+
+    if (!rateLimit(req, res, 'login', 10, 15 * 60 * 1000)) return;
 
     const { mail, motDePasse } = req.body;
     const user = mail && motDePasse

@@ -1,6 +1,8 @@
 import prisma from '@/prisma'
+import { requireAdmin } from '@/utils/auth';
 
 export default async function handle(req, res) {
+    if (!requireAdmin(req, res)) return;
     if (req.method === 'DELETE') {
         const { id } = req.query;
         const accountId = parseInt(id);

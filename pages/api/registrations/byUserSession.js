@@ -1,7 +1,10 @@
 import prisma from '@/prisma';
+import { requireActAs } from '@/utils/auth';
 
 export default async function handle(req, res) {
   const { userId, sessionId, specialAccount } = req.query;
+
+  if (!requireActAs(req, res, userId, specialAccount)) return;
 
   if(specialAccount){
     let queryOptions = {

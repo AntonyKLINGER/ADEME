@@ -1,4 +1,7 @@
+import { requireAdmin } from '@/utils/auth';
+
 export default function handler(req, res) {
+  if (!requireAdmin(req, res)) return;
   const status = global.__cronStatus || {
     enabled: false,
     startedAt: null,

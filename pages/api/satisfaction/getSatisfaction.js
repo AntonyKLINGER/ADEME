@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { requireAdmin } from '@/utils/auth';
 
 // Fonction pour sérialiser correctement les BigInt
 function serializeBigIntFields(data) {
@@ -10,6 +11,7 @@ function serializeBigIntFields(data) {
 }
 
 export default async function handler(req, res) {
+  if (!requireAdmin(req, res)) return;
   if (req.method === 'GET') {
     const { userId, sessionId, type } = req.query;
 

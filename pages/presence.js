@@ -7,7 +7,7 @@ export async function getServerSideProps(context) {
     const { auth: token } = nextCookies(context);
     const user = verifyToken(token);
   
-    if (!user && user != 115) {
+    if (!user || user.account || user.id != 115) {
       return {
         redirect: {
           destination: '/connexion',

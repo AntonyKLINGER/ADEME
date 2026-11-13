@@ -13,6 +13,15 @@ export default function Login(){
     const [lostMail, setLostMail] = useState('')
     const router = useRouter();
 
+    // Retour du lien de réinitialisation (api/users/lib/reset-password).
+    useEffect(() => {
+        if (router.query.reset === 'ok') {
+            setNotif({ text: 'Un nouveau mot de passe vous a été envoyé par e-mail.', icon: 'done' })
+        } else if (router.query.reset === 'invalide') {
+            setNotif({ text: 'Ce lien de réinitialisation est expiré ou a déjà servi.', icon: 'close' })
+        }
+    }, [router.query.reset])
+
     const handleChange = async (event) => {
         const { name, type, checked, value } = event.target
         setUserLogin(prev => {
@@ -47,7 +56,7 @@ export default function Login(){
                 }
             } else {
                 setNotif({
-                    text: 'Identifiant ou mot de passe invalide(s)',
+                    text: json.error || 'Identifiant ou mot de passe invalide(s)',
                     icon: 'close'
                 });
             }
@@ -73,8 +82,8 @@ export default function Login(){
                 const json = await fetcher.json()
                 if(json){
                     setNotif({
-                        text: 'Un e-mail avec votre nouveau mot de passe vous a été envoyé !',
-                        icon: 'done'
+                        text: json.error || 'Si un compte existe pour cette adresse, un e-mail vous a été envoyé pour réinitialiser votre mot de passe.',
+                        icon: json.error ? 'close' : 'done'
                     });  
                     setResetPass(false)                    
                 }

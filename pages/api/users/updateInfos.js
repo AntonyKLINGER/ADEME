@@ -1,4 +1,5 @@
 import prisma from '@/prisma';
+import { requireActAs, stripPasswords } from '@/utils/auth';
 
 export default async function handle(req, res) {
  
@@ -7,6 +8,8 @@ export default async function handle(req, res) {
   if (!id) {
     return res.status(400).json({ error: 'L\'ID de l\'utilisateur est requis' });
   }
+
+  if (!requireActAs(req, res, id, false)) return;
 
   try {
     // Recherche de l'utilisateur existant par son ID
@@ -49,7 +52,7 @@ export default async function handle(req, res) {
       data: updatedData,
     });
 
-    res.json(updatedUser);
+    res.json(stripPasswords(updatedUser));
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Erreur du serveur' });

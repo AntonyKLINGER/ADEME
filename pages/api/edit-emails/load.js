@@ -1,11 +1,13 @@
 import fs from 'fs'
 import path from 'path'
+import { requireAdmin } from '@/utils/auth';
 
 export default function handler(req, res) {
+  if (!requireAdmin(req, res)) return;
   const { filename } = req.query
   const filePath = path.join(process.cwd(), 'views/emails', filename)
 
-  if (!filename || !filename.endsWith('.hbs')) {
+  if (!filename || !/^[\w-]+\.hbs$/.test(filename)) {
     return res.status(400).json({ error: 'Fichier invalide' })
   }
 

@@ -9,7 +9,7 @@ export default function Profil({ user }){
     const [actions, setActions] = useState(0)
     const [alert, setAlert] = useState(null)
     const [notif, setNotif] = useState(null)
-    const [passw, setPassw] = useState({ motDePasse: '', motDePasse2: '' })
+    const [passw, setPassw] = useState({ ancienMotDePasse: '', motDePasse: '', motDePasse2: '' })
     const [rgpd, setRgpd] = useState(false)
     
     const getUserInfos = async () => {
@@ -45,8 +45,15 @@ export default function Profil({ user }){
     }
 
     const changePassword = async () => {
-        const { motDePasse, motDePasse2 } = passw
-        if(motDePasse && motDePasse2){
+        const { ancienMotDePasse, motDePasse, motDePasse2 } = passw
+        if(motDePasse != motDePasse2){
+            setNotif({
+                text: 'Les 2 mots de passe ne correspondent pas',
+                icon: 'close'
+            })
+            return
+        }
+        if(ancienMotDePasse && motDePasse && motDePasse2){
             if(motDePasse.length > 5){
                 if(user.type == "Administrateur" || user.type == "DR"){
                     const fetcher = await fetch('/api/users/lib/update-password', {
@@ -55,6 +62,7 @@ export default function Profil({ user }){
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
+                            ancienMotDePasse: ancienMotDePasse,
                             motDePasse: motDePasse,
                             userId: user.id,
                             type: 'special'
@@ -66,6 +74,12 @@ export default function Profil({ user }){
                             text: 'Le mot de passe a bien été modififé !',
                             icon: 'done'
                         })                      
+                        setPassw({ ancienMotDePasse: '', motDePasse: '', motDePasse2: '' })
+                    } else {
+                        setNotif({
+                            text: json.error || 'Le mot de passe n\'a pas pu être modifié',
+                            icon: 'close'
+                        })
                     }
                 } else {
                     const fetcher = await fetch('/api/users/lib/update-password', {
@@ -74,6 +88,7 @@ export default function Profil({ user }){
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
+                            ancienMotDePasse: ancienMotDePasse,
                             motDePasse: motDePasse,
                             userId: user.id,
                             type: 'user'
@@ -85,6 +100,12 @@ export default function Profil({ user }){
                             text: 'Le mot de passe a bien été modififé !',
                             icon: 'done'
                         })                      
+                        setPassw({ ancienMotDePasse: '', motDePasse: '', motDePasse2: '' })
+                    } else {
+                        setNotif({
+                            text: json.error || 'Le mot de passe n\'a pas pu être modifié',
+                            icon: 'close'
+                        })
                     }
                 }
             }
@@ -250,6 +271,9 @@ export default function Profil({ user }){
             <span className={styles.Subtitle}>Vous souhaitez modifier votre mot de passe ?</span>
             <div className="mTop30">
                 <div className="flex gap20 toColumn">
+                    <input type="password" name="ancienMotDePasse" onChange={handleChangePass} value={passw.ancienMotDePasse} className="input-text w50 wm100" placeholder="Mot de passe actuel*" />
+                </div>
+                <div className="flex gap20 mTop20 toColumn">
                     <input type="password" name="motDePasse" onChange={handleChangePass} value={passw.motDePasse} className="input-text w50 wm100" placeholder="Nouveau mot de passe" />
                     <input type="password" name="motDePasse2" onChange={handleChangePass} value={passw.motDePasse2} className="input-text w50 wm100" placeholder="Confirmez votre mot de passe*" />
                 </div>

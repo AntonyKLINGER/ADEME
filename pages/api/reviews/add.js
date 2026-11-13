@@ -1,4 +1,5 @@
 import prisma from '@/prisma'
+import { requireActAs } from '@/utils/auth';
 
 export default async function handle(req, res) {
     // Vérifier que la méthode utilisée est POST
@@ -10,6 +11,8 @@ export default async function handle(req, res) {
 
     // Extraire les données reçues du corps de la requête
     const { note, commentaire, userId, sessionId, type } = req.body;
+
+    if (!requireActAs(req, res, userId, type === 'special')) return;
 
     // Valider les données reçues
     if (!note || !commentaire || !userId || !sessionId) {

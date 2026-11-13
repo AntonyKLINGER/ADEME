@@ -3,8 +3,10 @@ const hbs = require('nodemailer-express-handlebars');
 const path = require('path');
 import prisma from '@/lib/prisma';
 const { BREVO_SMTP_USER, EMAIL_FROM, EMAIL_REPLY_TO } = require('../../../utils/emailUtils');
+import { requireAdmin } from '@/utils/auth';
 
 export default async function handler(req, res) {
+  if (!requireAdmin(req, res)) return;
   const { sujet, content, sessionId } = req.body;
 
   try {

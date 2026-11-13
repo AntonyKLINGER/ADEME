@@ -2,8 +2,10 @@ import nodemailer from 'nodemailer';
 import hbs from 'nodemailer-express-handlebars';
 import path from 'path';
 import { BREVO_SMTP_USER, EMAIL_FROM, EMAIL_REPLY_TO } from '../../../utils/emailUtils';
+import { requireInternalOrAdmin } from '@/utils/auth';
 
 export default async function handler(req, res) {
+  if (!requireInternalOrAdmin(req, res)) return;
   const { prenom, email, nomRencontre, dateRencontre, lieuRencontre, nbJours, mail_referent, firstDayStartTime } = req.body;
 
   const startTime = firstDayStartTime.split('-')[0].trim();

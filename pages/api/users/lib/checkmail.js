@@ -1,7 +1,14 @@
 import prisma from '@/prisma'
+import { rateLimit } from '@/utils/rateLimit';
 
 export default async function handle(req, res) {
+    // Dit si une adresse a déjà un compte : limité pour freiner l'énumération.
+    if (!rateLimit(req, res, 'checkmail', 30, 15 * 60 * 1000)) return;
+
     const { mail } = req.query;
+    if (!mail) {
+      return res.status(400).json({ error: 'mail requis' });
+    }
   
     let queryOptions = {
       where: {},
