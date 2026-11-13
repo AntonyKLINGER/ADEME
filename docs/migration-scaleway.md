@@ -31,11 +31,21 @@ Puis la séquence du README : merge de #5795 et apply, test `curl --resolve`, DN
 
 ### Infra (dépôt quartet)
 
-Nouveau fichier `infra/prod/rencontres.tf`, sur le modèle de `infra/nonprod/storage.tf` :
+Les permissions IAM Object Storage de Scaleway valent pour un projet entier, pas pour un bucket. Une clé créée dans `tet-prod` atteindrait donc aussi le bucket des fichiers de TET. Le bucket de rencontres vit dans **son propre projet Scaleway, `tet-rencontres`**, qui ne contient rien d'autre : c'est le modèle déjà appliqué à `tet-backups` (`infra/platform/main.tf`, README § « Prérequis admin »).
 
-- `scaleway_object_bucket` `tet-prod-rencontres` (privé, `prevent_destroy`) : le listing reste fermé, la lecture publique est portée par l'ACL de chaque objet.
-- `scaleway_iam_application` + `scaleway_iam_api_key` (`default_project_id` = projet `tet-prod`), clés en outputs.
-- Étapes manuelles, comme pour TET : l'admin de l'organisation ajoute l'application au groupe donnant `ObjectStorageFullAccess` ; les clés sont rangées avec `infra/scripts/coolify-env-secret-set.sh prod rencontres-s3-access-key-id` / `rencontres-s3-secret-access-key`.
+Prérequis admin (droits d'organisation, hors Terraform, comme pour `tet-coolify-backups`) :
+
+1. Créer le projet `tet-rencontres`.
+2. Donner aux opérateurs Terraform `ObjectStorageFullAccess` limité à ce projet.
+3. Créer l'application IAM `tet-rencontres-storage` avec une politique limitée à `tet-rencontres` : `ObjectStorageObjectsRead` et `ObjectStorageObjectsWrite` uniquement. Pas de `ObjectsDelete` (l'app ne supprime jamais de fichier) ni de `BucketsWrite` (la clé ne touche pas à la configuration du bucket).
+4. Créer sa clé d'API avec `tet-rencontres` comme **projet par défaut** (l'API S3 résout les buckets dans le projet par défaut de la clé), puis la déposer avec `infra/scripts/coolify-env-secret-set.sh prod rencontres-s3-access-key-id` / `rencontres-s3-secret-access-key`.
+
+Terraform, nouveau fichier `infra/prod/rencontres.tf` :
+
+- variable `rencontres_project_id` (même validation UUID que `backups_project_id`) ;
+- `scaleway_object_bucket` `tet-prod-rencontres` avec `project_id = var.rencontres_project_id` (privé, `prevent_destroy`) : le listing reste fermé, la lecture publique est portée par l'ACL de chaque objet.
+
+Résultat : une clé de rencontres compromise ne peut que lire et écrire des objets dans ce seul bucket. Elle ne voit ni les fichiers de TET, ni `tet-tfstate`, ni les backups.
 
 `infra/coolify/env-manifest.tf`, bloc `rencontres` :
 
@@ -52,7 +62,7 @@ Nouveau fichier `infra/prod/rencontres.tf`, sur le modèle de `infra/nonprod/sto
 ### Données
 
 1. Copie, clés conservées à l'identique (`uploads/<fichier>`) :
-   `rclone sync supa:ademe scw:tet-prod-rencontres --s3-acl public-read`, où `supa` est l'endpoint S3 du projet Supabase (clés « S3 access keys » du dashboard).
+   `rclone sync supa:ademe scw:tet-prod-rencontres --s3-acl public-read`, où `supa` est l'endpoint S3 du projet Supabase (clés « S3 access keys » du dashboard) et `scw` utilise les credentials de l'opérateur, pas la clé de l'app.
 2. Déployer le code et les variables (push des envs puis redéploiement Coolify).
 3. Repasser le même `rclone sync` pour le delta.
 4. Réécrire les URL stockées en base (elles partent avec le dump de l'étape 3) — préfixe `https://eazuwwpllqueujyivlce.supabase.co/storage/v1/object/public/ademe/` → `https://tet-prod-rencontres.s3.fr-par.scw.cloud/` :
@@ -112,7 +122,6 @@ Retour arrière : remettre l'ancienne valeur du secret et redéployer. Sans pert
 ## Points d'attention
 
 - **Dépendance à quartet** : la base atterrit sur `tet-prod-pg`, dont TET prod n'est pas encore l'occupant en production (`is_ha_cluster = false`, CD encore sur `preprod-scaleway`). La restauration de TET ne touche que la base `tet`, mais toute recréation de l'instance emporterait `rencontres` : à garder en tête lors de la bascule de TET.
-- **Clé S3 trop large** : la policy `ObjectStorageFullAccess` vaut pour tout le projet `tet-prod`, donc la clé de rencontres atteint aussi le bucket de fichiers de TET. C'est le modèle retenu dans quartet ; le restreindre demanderait une bucket policy sur chaque bucket.
 - **Écritures sur disque local** : `pages/api/modules/add.js` et `update.js` écrivent encore dans `public/uploads` (disque éphémère, sur Koyeb comme sur Coolify). Vérifier en base s'il existe des `Module.visuel` commençant par `/uploads/` : ils sont déjà cassés aujourd'hui. Hors périmètre, à traiter à part si c'est le cas.
 
 ## Fichiers touchés
@@ -124,11 +133,13 @@ Ce dépôt :
 - `package.json`, `package-lock.json`, `README.md`
 
 Dépôt quartet :
-- `infra/prod/rencontres.tf` (nouveau), `infra/prod/coolify-env-secrets.tf`, `infra/prod/outputs.tf`
+- `infra/prod/rencontres.tf` (nouveau), `infra/prod/variables.tf`, `infra/prod/coolify-env-secrets.tf`
+- `infra/README.md` (§ « Prérequis admin » : projet `tet-rencontres` et son application IAM)
 - `infra/coolify/env-manifest.tf`, `infra/coolify/git-applications.tf` (commentaires)
 
 ## Vérification
 
 - **Stockage, en local avant déploiement** : variables `S3_*` d'un bucket de test, `npm run dev`, téléverser un PDF sur une session et un visuel sur un module depuis `/admin`, ouvrir l'URL renvoyée dans un onglet privé (lecture publique), vérifier que `https://<bucket>.s3.fr-par.scw.cloud/` seul refuse le listing.
+- **Périmètre de la clé** : avec la clé de l'app, `aws s3 ls s3://tet-prod-rencontres` et un `PutObject` avec `--acl public-read` passent (si l'ACL est refusée avec `ObjectsWrite` seul, c'est ici qu'on le voit) ; un `ls` sur le bucket de fichiers de TET et un `rm` sur un objet de rencontres sont refusés.
 - **Après la copie** : `rclone check supa:ademe scw:tet-prod-rencontres` ; ouvrir une session ancienne sur le site et télécharger ses PDF ; plus aucune occurrence de `supabase.co` en base.
 - **Après la bascule de la base** : connexion avec un compte participant existant et un compte admin existant (hash bcrypt et `JWT_SECRET` inchangés) ; une inscription à une session ; `GET /api/cron/status` (tâches planifiées, `enabled: true`) ; « mot de passe oublié » pour valider l'envoi Brevo depuis Scaleway ; logs `{env="production", service="rencontres"}` dans le Cockpit `tet-prod`.
