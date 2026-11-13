@@ -348,8 +348,7 @@ export default function EditSession({setOpen, id, nom, moduleId, page}){
         const response = await fetch('/api/sessions/update', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': process.env.ADMIN_API_KEY
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               sessionId,

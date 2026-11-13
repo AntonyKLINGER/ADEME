@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import { useState, uesEffect } from 'react'
 import nextCookies from 'next-cookies';
-import { verifyToken } from '@/utils/auth';
+import { verifyToken, isAdmin } from '@/utils/auth';
 import Modules from '@/components/Modules'
 import Comptes from '@/components/Comptes'
 import Sessions from '@/components/Sessions'
@@ -16,7 +16,7 @@ export async function getServerSideProps(context) {
 
     const user = verifyToken(token);
   
-    if (!user || (user.id != 10 && user.type != 'Administrateur' && user.type != 'DR')) {
+    if (!isAdmin(user)) {
       return {
         redirect: {
           destination: '/connexion',

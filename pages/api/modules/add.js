@@ -2,6 +2,7 @@ import prisma from '@/prisma';
 import { IncomingForm } from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import { requireAdmin } from '@/utils/auth';
 
 export const config = {
   api: {
@@ -22,11 +23,7 @@ export default async function handle(req, res) {
         return;
     }
 
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey || apiKey !== process.env.ADMIN_API_KEY) {
-        res.status(401).json({ error: 'Unauthorized: Invalid API key' });
-        return;
-    }  
+    if (!requireAdmin(req, res)) return;
 
     const form = new IncomingForm({
         uploadDir: path.join(process.cwd(), '/public/uploads'), // Définir le répertoire de téléchargement

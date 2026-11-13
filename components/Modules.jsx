@@ -26,8 +26,7 @@ export default function Modules({setPage, user}){
             const response = await fetch(`/api/modules/delete/?id=${moduleId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': process.env.NEXT_PUBLIC_ADMIN_KEY
+                    'Content-Type': 'application/json'
                 },
             });
     

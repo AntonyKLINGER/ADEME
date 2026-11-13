@@ -80,8 +80,7 @@ export default function Modules({setPage, page, user}){
             const response = await fetch(`/api/sessions/delete/?id=${sessionId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': process.env.NEXT_PUBLIC_ADMIN_KEY
+                    'Content-Type': 'application/json'
                 },
             });
     

@@ -1,4 +1,5 @@
 import prisma from '@/prisma';
+import { requireAdmin } from '@/utils/auth';
 
 export default async function handle(req, res) {
     if (req.method !== 'POST') {
@@ -7,11 +8,7 @@ export default async function handle(req, res) {
         return;
     }
 
-    // const apiKey = req.headers['x-api-key'];
-    // if (!apiKey || apiKey !== process.env.ADMIN_API_KEY) {
-    //     res.status(401).json({ error: 'Unauthorized: Invalid API key' });
-    //     return;
-    // }  
+    if (!requireAdmin(req, res)) return;
 
     const { sessionId, sessionData, metasSessionData } = req.body;
 

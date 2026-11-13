@@ -26,55 +26,30 @@ export default function Login(){
     const login = async () => {
         const { mail, motDePasse, isAdmin } = userLogin;
         if (mail && motDePasse) {
-            if(isAdmin){
-                const test = await fetch(`/api/accounts/lib/auth/?mail=${mail}&motDePasse=${motDePasse}`);
-                const json = await test.json();
-                if (json.success == true) {                       
-                    const jwtResponse = await fetch(`/api/accounts/lib/jwt`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ id: json.account.id, mail: json.account.mail, type: json.account.type, modules: json.account.modules, regions: json.account.regions }),
-                    });
-                
-                    const jwtJson = await jwtResponse.json();
-                    if(jwtJson.success){
-                        router.push('/admin');                  
-                    }
-                } else {
-                    setNotif({
-                        text: 'Identifiant ou mot de passe invalide(s)',
-                        icon: 'close'
-                    });
+            // La route vérifie le mot de passe et pose le cookie de session.
+            const response = await fetch(isAdmin ? '/api/accounts/lib/jwt' : '/api/users/lib/jwt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ mail, motDePasse }),
+            });
+            const json = await response.json();
+            if (json.success == true) {
+                if (isAdmin) {
+                    router.push('/admin');
                 }
-            }
-            else{
-                const test = await fetch(`/api/users/lib/auth/?mail=${mail}&motDePasse=${motDePasse}`);
-                const json = await test.json();
-                if (json.success == true) {                       
-                    const jwtResponse = await fetch(`/api/users/lib/jwt`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ id: json.user.id, mail: json.user.mail, type: 'user' }),
-                    });
-                
-                    const jwtJson = await jwtResponse.json();
-                    if(jwtJson && json.user.id != 115){
-                        router.push('/espace-personnel');                       
-                    }
-                    else{
-                        router.push('/presence');
-                    }
-                    
-                } else {
-                    setNotif({
-                        text: 'Identifiant ou mot de passe invalide(s)',
-                        icon: 'close'
-                    });
+                else if (json.id != 115) {
+                    router.push('/espace-personnel');
                 }
+                else {
+                    router.push('/presence');
+                }
+            } else {
+                setNotif({
+                    text: 'Identifiant ou mot de passe invalide(s)',
+                    icon: 'close'
+                });
             }
         }
         else {

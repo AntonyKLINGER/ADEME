@@ -220,9 +220,6 @@ export default function AddModule({setOpen}){
             try {
                 const add = await fetch('/api/modules/add', {
                   method: 'POST',
-                  headers: {
-                    'x-api-key': process.env.NEXT_PUBLIC_ADMIN_KEY
-                  },
                   body: formData,
                 });
               

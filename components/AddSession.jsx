@@ -250,8 +250,7 @@ export default function AddSession({setOpen, id, nom}){
         const response = await fetch('/api/sessions/add', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.NEXT_PUBLIC_ADMIN_KEY
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             sessionData: sessionData,
